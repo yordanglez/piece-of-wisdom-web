@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<!-- GitHub Pages sirve esta página desde cualquier ruta que no exista: la base
+     hace que estilos e imágenes carguen igual. Con dominio propio, cambiar a "/". -->
+<base href="/piece-of-wisdom-web/">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Página no encontrada · Piece of Wisdom</title>
+<meta name="description" content="Esta página no existe.">
+<meta name="theme-color" content="#0A0F1C" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3F7FC" media="(prefers-color-scheme: light)">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<script>
+  try { var t = localStorage.getItem('pow-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="i-sueno" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8.6 8.6 0 019.4 4 8.6 8.6 0 1020 14.6z"/></g></symbol>
+<symbol id="i-hoy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.9 5.9l1.7 1.7M16.4 16.4l1.7 1.7M18.1 5.9l-1.7 1.7M7.6 16.4l-1.7 1.7"/></g></symbol>
+<symbol id="i-copiar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.4"/><path d="M15.5 8.5V6.9a2.4 2.4 0 0 0-2.4-2.4H6.9a2.4 2.4 0 0 0-2.4 2.4v6.2a2.4 2.4 0 0 0 2.4 2.4h1.6"/></g></symbol>
+</svg>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Piece of Wisdom, inicio"><img src="assets/icon.png" alt="" width="30" height="30"><span>piece of wisdom</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="index.html#pruebala">Pruébala</a>
+      <a href="index.html#temas">Temas</a>
+      <a href="index.html#fe">Tiempo con Dios</a>
+      <a href="index.html#privacidad">Privacidad</a>
+      <a href="index.html#precio">Precio</a>
+    </nav>
+    <span class="spacer"></span>
+    <button class="tema-toggle" type="button" id="tema-toggle" aria-label="Cambiar el tema">
+      <svg aria-hidden="true"><use href="#i-hoy"></use></svg><span class="tema-texto">De día</span>
+    </button>
+  </div>
+</header>
+
+<main id="contenido" class="doc">
+  <div class="wrap">
+<div class="error-404">
+      <p class="eyebrow">404</p>
+      <h1>Esta página no existe.</h1>
+      <p class="intro">Puede que el enlace esté mal escrito o que la página se haya movido.</p>
+      <p><a class="btn btn-primary" href="index.html">Volver al inicio</a></p>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div class="contacto">
+        <a class="brand" href="index.html"><img src="assets/icon.png" alt="" width="30" height="30"><span>piece of wisdom</span></a>
+        <span><span class="correo">yorda891216@gmail.com</span> <button class="copiar" type="button" data-copiar="yorda891216@gmail.com"><svg width="14" height="14" aria-hidden="true"><use href="#i-copiar"></use></svg><span>Copiar</span></button></span>
+      </div>
+      <nav aria-label="Legal y ayuda">
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+        <a href="eliminar-datos.html">Eliminar mis datos</a>
+        <a href="soporte.html">Soporte</a>
+      </nav>
+    </div>
+    <p class="fine">© 2026 Yordano González Fernández. Piece of Wisdom es una app de bienestar; no es un dispositivo médico ni sustituye atención profesional.</p>
+  </div>
+</footer>
+
+<script src="tema.js"></script>
+</body>
+</html>

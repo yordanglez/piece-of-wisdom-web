@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Piece of Wisdom — Una pausa escrita para lo que traes hoy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Piece of Wisdom es una app de meditación guiada en español. Escribe cómo va tu día y te prepara una sesión con voz, a tu medida: tema, duración y sonidos de fondo.">
+<meta name="theme-color" content="#0A0F1C" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F3F7FC" media="(prefers-color-scheme: light)">
+<link rel="icon" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:title" content="Piece of Wisdom — Una pausa escrita para lo que traes hoy">
+<meta property="og:description" content="Escribe cómo va tu día y te prepara una meditación guiada con voz, a tu medida.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://yordanglez.github.io/piece-of-wisdom-web/">
+<meta property="og:image" content="https://yordanglez.github.io/piece-of-wisdom-web/assets/og.jpg">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+  // El tema elegido a mano gana al del sistema; se aplica antes de pintar.
+  try { var t = localStorage.getItem('pow-tema'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+<symbol id="i-adelante" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></g></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></g></symbol>
+<symbol id="i-chevronAtras" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></g></symbol>
+<symbol id="i-bajar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></g></symbol>
+<symbol id="i-cerrar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></g></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></g></symbol>
+<symbol id="i-mas" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v13M5.5 12h13"/></g></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8 4.6l11 7.4-11 7.4z" fill="currentColor"/></symbol>
+<symbol id="i-pausa" viewBox="0 0 24 24"><rect x="6.5" y="4.5" width="4" height="15" rx="1.4" fill="currentColor"/><rect x="13.5" y="4.5" width="4" height="15" rx="1.4" fill="currentColor"/></symbol>
+<symbol id="i-saltarAtras" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 8.4A8.6 8.6 0 1 1 3.4 12"/><path d="M3.4 4.6v4h4"/></g></symbol>
+<symbol id="i-saltarAdelante" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 8.4A8.6 8.6 0 1 0 20.6 12"/><path d="M20.6 4.6v4h-4"/></g></symbol>
+<symbol id="i-calma" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><path d="M3 15c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/></g></symbol>
+<symbol id="i-sueno" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.6A8.6 8.6 0 019.4 4 8.6 8.6 0 1020 14.6z"/></g></symbol>
+<symbol id="i-enfoque" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="2.2"/><path d="M12 1.8v2.6M12 19.6v2.6M1.8 12h2.6M19.6 12h2.6"/></g></symbol>
+<symbol id="i-gratitud" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.4-4.3-7.4-9.3A4.1 4.1 0 0112 8.4a4.1 4.1 0 017.4 2.3c0 5-7.4 9.3-7.4 9.3z"/></g></symbol>
+<symbol id="i-fe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="4"/><path d="M12 2.6v3M4.6 13h-3M22.4 13h-3M6.4 7.4L4.6 5.6M17.6 7.4l1.8-1.8"/></g></symbol>
+<symbol id="i-autoestima" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M8.4 13.6c.9 1.4 2.1 2.1 3.6 2.1s2.7-.7 3.6-2.1"/></g></symbol>
+<symbol id="i-duelo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5c3.4 4 5.1 6.8 5.1 9a5.1 5.1 0 01-10.2 0c0-2.2 1.7-5 5.1-9z"/></g></symbol>
+<symbol id="i-respiracion" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10c3-3 6-3 8 0"/><path d="M4 15c4-4 9-4 13 0"/></g></symbol>
+<symbol id="i-sabiduria" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 5.2 8.4 4.6 5.4 4.6v13c3 0 5 .6 6.6 1.8 1.6-1.2 3.6-1.8 6.6-1.8v-13c-3 0-5 .6-6.6 1.8z"/><path d="M12 6.4v13"/></g></symbol>
+<symbol id="i-avatar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><circle cx="12" cy="9.6" r="2.9"/><path d="M6.8 18.6c1.1-2.3 3-3.4 5.2-3.4s4.1 1.1 5.2 3.4"/></g></symbol>
+<symbol id="i-nota" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.5 2.5 0 00-3.5-3.5L4.5 16.5 4 20z"/></g></symbol>
+<symbol id="i-reloj" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.4"/><path d="M12 8v4.4l3 1.8"/></g></symbol>
+<symbol id="i-microfono" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 12a6 6 0 0012 0M12 18v3"/></g></symbol>
+<symbol id="i-altavoz" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h2.6l3.4-4.6v9.2L6.6 12"/><path d="M14 9.4a3.6 3.6 0 0 1 0 5.2M16.6 6.8a7 7 0 0 1 0 10.4"/></g></symbol>
+<symbol id="i-niveles" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v4M8 6.5v11M12 4v16M16 7.5v9M20 10.5v3"/></g></symbol>
+<symbol id="i-texto" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4.5" width="16" height="15" rx="2.5"/><path d="M8 9.5h8M8 13h6"/></g></symbol>
+<symbol id="i-diario" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.6" width="14" height="16.8" rx="2.4"/><path d="M8.8 3.6v16.8"/><path d="M11.6 8.4h4.4M11.6 12h4.4"/></g></symbol>
+<symbol id="i-descargarCirculo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.6v7M9 11.6l3 3 3-3"/></g></symbol>
+<symbol id="i-piezaTrazo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h11v16l-5.5-3.6L6.5 20z"/></g></symbol>
+<symbol id="i-auriculares" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.6" y="14" width="4.4" height="6.4" rx="2.2"/><rect x="17" y="14" width="4.4" height="6.4" rx="2.2"/><path d="M4.5 15v-3.2a7.5 7.5 0 0115 0V15"/></g></symbol>
+<symbol id="i-camino" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h9a2.6 2.6 0 010 5.2H8"/><path d="M5 12h9a2.6 2.6 0 010 5.2H8"/><path d="M5 18h5"/></g></symbol>
+<symbol id="i-hoy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.9 5.9l1.7 1.7M16.4 16.4l1.7 1.7M18.1 5.9l-1.7 1.7M7.6 16.4l-1.7 1.7"/></g></symbol>
+<symbol id="i-campana" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16v-4.6a6 6 0 1112 0V16l1.6 2.4H4.4L6 16z"/><path d="M10.2 20.4h3.6"/></g></symbol>
+<symbol id="i-escudo" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="11" r="1.8"/><path d="M12 3.6l6.4 2.6v5.2c0 4-2.6 7-6.4 8.4-3.8-1.4-6.4-4.4-6.4-8.4V6.2L12 3.6z"/><path d="M12 12.8v2.4"/></g></symbol>
+<symbol id="i-estrella" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6l2.6 5.4 5.8.8-4.2 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.6 9.8l5.8-.8z"/></g></symbol>
+<symbol id="i-papelera" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V4.6h6V7M7 7l.9 12.4h8.2L17 7"/></g></symbol>
+<symbol id="i-sonido" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 14.5h9.5a3.5 3.5 0 000-7 5.2 5.2 0 00-9.9 1.3A3 3 0 007 14.5z"/><path d="M9 17.5v2M12 17.5v2.8M15 17.5v2"/></g></symbol>
+<symbol id="i-vela" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 20.4V9.6a2.6 2.6 0 0 1 5.2 0v10.8z"/><path d="M12 7V3.6"/></g></symbol>
+<symbol id="i-oracion" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 14.4A8 8 0 019.6 4.6 8 8 0 1019.4 14.4z"/><path d="M18 3v3.4M16.3 4.7h3.4"/></g></symbol>
+<symbol id="i-mezclador" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="8" r="2"/><circle cx="10" cy="16" r="2"/><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/></g></symbol>
+<symbol id="i-voz" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="3.2"/><path d="M5.5 19.5c1.4-3.1 3.7-4.6 6.5-4.6s5.1 1.5 6.5 4.6"/></g></symbol>
+<symbol id="i-documento" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3.6" width="14" height="16.8" rx="2.4"/><path d="M8.4 8.4h7.2M8.4 12h7.2M8.4 15.6h4.2"/></g></symbol>
+<symbol id="i-senal" viewBox="0 0 24 24"><g fill="currentColor"><rect x="3" y="14" width="3.2" height="5" rx="1"/><rect x="8" y="11" width="3.2" height="8" rx="1"/><rect x="13" y="8" width="3.2" height="11" rx="1"/><rect x="18" y="5" width="3.2" height="14" rx="1"/></g></symbol>
+<symbol id="i-bateria" viewBox="0 0 28 24"><rect x="1.5" y="6.5" width="22" height="11" rx="3.2" fill="none" stroke="currentColor" stroke-opacity=".5"/><rect x="3.4" y="8.4" width="16" height="7.2" rx="1.8" fill="currentColor"/><path d="M25.2 10v4" stroke="currentColor" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-copiar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11" height="11" rx="2.4"/><path d="M15.5 8.5V6.9a2.4 2.4 0 0 0-2.4-2.4H6.9a2.4 2.4 0 0 0-2.4 2.4v6.2a2.4 2.4 0 0 0 2.4 2.4h1.6"/></g></symbol>
+</svg>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="Piece of Wisdom, inicio"><img src="assets/icon.png" alt="" width="30" height="30"><span>piece of wisdom</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#pruebala">Pruébala</a>
+      <a href="#temas">Temas</a>
+      <a href="#fe">Tiempo con Dios</a>
+      <a href="#privacidad">Privacidad</a>
+      <a href="#precio">Precio</a>
+    </nav>
+    <span class="spacer"></span>
+    <button class="tema-toggle" type="button" id="tema-toggle" aria-label="Cambiar el tema">
+      <svg aria-hidden="true"><use href="#i-hoy"></use></svg><span class="tema-texto">De día</span>
+    </button>
+    <a class="btn btn-primary btn-small" href="mailto:yorda891216@gmail.com?subject=Quiero%20probar%20Piece%20of%20Wisdom">Solicitar acceso</a>
+  </div>
+</header>
+
+<main id="contenido">
+
+  <!-- ── El horizonte ─────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="estrellas" aria-hidden="true">
+      <i style="left:8%;top:14%"></i><i style="left:22%;top:38%;opacity:.6"></i><i style="left:41%;top:9%"></i>
+      <i style="left:63%;top:24%;opacity:.5"></i><i style="left:78%;top:12%"></i><i style="left:91%;top:41%;opacity:.7"></i>
+      <i style="left:55%;top:47%;opacity:.4"></i><i style="left:33%;top:58%;opacity:.5"></i>
+    </div>
+    <div class="resplandor" aria-hidden="true"></div>
+    <div class="horizonte" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="hero-texto">
+        <p class="eyebrow">Meditación guiada, en español</p>
+        <h1 class="display" id="hero-titulo">Una pausa escrita para <em>lo que traes hoy</em>.</h1>
+        <p class="lead">Escribe cómo va tu día en una o dos frases. Piece of Wisdom te prepara una meditación guiada con voz, con el tema, la duración y los sonidos que tú elijas.</p>
+        <div class="hero-acciones">
+          <a class="btn btn-primary" href="mailto:yorda891216@gmail.com?subject=Quiero%20probar%20Piece%20of%20Wisdom">Solicitar acceso <svg aria-hidden="true"><use href="#i-adelante"></use></svg></a>
+          <a class="btn btn-secondary" href="#pruebala">Pruébala aquí <svg aria-hidden="true"><use href="#i-bajar"></use></svg></a>
+        </div>
+        <p class="hero-nota">Muy pronto en Google Play. Mientras tanto, puedes recorrerla aquí abajo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── El móvil que se toca ─────────────────────────────────────── -->
+  <section class="tramo" id="pruebala" aria-labelledby="demo-titulo">
+    <div class="wrap">
+      <div class="demo-grid">
+        <div class="cabeza demo-cabeza">
+          <p class="eyebrow">Pruébala</p>
+          <h2 class="h2" id="demo-titulo">Así se prepara una sesión.</h2>
+          <p class="lead">Este móvil funciona. Escribe algo de verdad o usa un ejemplo, y recorre los mismos pasos que en la app.</p>
+        </div>
+        <div class="demo-lado">
+          <ol class="pasos" id="pasos">
+            <li class="paso"><button type="button" data-paso="0"><span class="n">1</span><span class="t">Escribe lo que traes</span><span class="d">Una nota o varias a lo largo del día, cada una con su hora.</span></button></li>
+            <li class="paso"><button type="button" data-paso="1"><span class="n">2</span><span class="t">Ajusta la sesión</span><span class="d">Desde todo el día o desde una nota. Duración, voz y sonidos de fondo.</span></button></li>
+            <li class="paso"><button type="button" data-paso="2"><span class="n">3</span><span class="t">Se prepara</span><span class="d">El guion se escribe para ti y se le pone voz. Puedes salir: sigue en marcha.</span></button></li>
+            <li class="paso"><button type="button" data-paso="3"><span class="n">4</span><span class="t">Escucha</span><span class="d">Con el texto a la vista, los sonidos que mezclas en vivo y un temporizador para dormir.</span></button></li>
+            <li class="paso"><button type="button" data-paso="4"><span class="n">5</span><span class="t">Cierra</span><span class="d">Cómo te vas, una frase para llevarte y, si quieres, una línea en tu diario.</span></button></li>
+          </ol>
+          <div class="sugerencias">
+            <p class="meta">¿No se te ocurre nada? Prueba con una de estas:</p>
+            <div class="chips">
+              <button class="chip" type="button" data-sugerencia="Mañana tengo una entrevista y no paro de darle vueltas.">Mañana tengo una entrevista</button>
+              <button class="chip" type="button" data-sugerencia="Hoy ha sido un buen día y quiero quedarme con eso.">Hoy ha sido un buen día</button>
+              <button class="chip" type="button" data-sugerencia="Llevo varias noches durmiendo mal.">Llevo noches durmiendo mal</button>
+              <button class="chip" type="button" data-sugerencia="Echo de menos a mi abuela.">Echo de menos a mi abuela</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-movil">
+          <div class="telefono">
+            <div class="pantalla" id="pantalla" role="region" aria-label="Demostración interactiva de la app" aria-roledescription="móvil">
+              <div class="ambiente" aria-hidden="true"></div>
+              <div class="estado-bar" aria-hidden="true">
+                <span class="hora" id="demo-hora">9:41</span>
+                <span class="isla"></span>
+                <span class="iconos"><svg><use href="#i-senal"></use></svg><svg><use href="#i-bateria"></use></svg></span>
+              </div>
+              <div id="demo-vista"></div>
+              <div id="demo-capas"></div>
+            </div>
+          </div>
+          <p class="demo-nota">Demostración. En la app, el guion y la voz se crean para ti con IA; aquí el guion es un ejemplo, no hay voz y el tiempo corre diez veces más deprisa. Lo que escribes no sale de esta página.</p>
+          <p class="sr-only" aria-live="polite" id="demo-anuncio"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="filo">
+
+  <!-- ── Temas ─────────────────────────────────────────────────────── -->
+  <section class="tramo" id="temas" aria-labelledby="temas-titulo">
+    <div class="wrap">
+      <div class="cabeza">
+        <p class="eyebrow">Nueve temas</p>
+        <h2 class="h2" id="temas-titulo">¿Qué necesitas ahora?</h2>
+        <p class="lead">Si hoy no te apetece escribir, elige un tema y la sesión sale de ahí. Toca uno para probarlo en el móvil de arriba.</p>
+      </div>
+      <div class="temas" id="lista-temas">
+        <button class="tema" type="button" data-tema="Calma" style="--n:url(assets/noche/portadas/calma-soltar.jpg);--d:url(assets/dia/portadas/calma-soltar.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Calma</span><span class="s">Bajar el ritmo</span></button>
+        <button class="tema" type="button" data-tema="Sueño" style="--n:url(assets/noche/portadas/sueno-noche-serena.jpg);--d:url(assets/dia/portadas/sueno-noche-serena.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Sueño</span><span class="s">Dejar el día</span></button>
+        <button class="tema" type="button" data-tema="Enfoque" style="--n:url(assets/noche/portadas/enfoque-un-punto.jpg);--d:url(assets/dia/portadas/enfoque-un-punto.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Enfoque</span><span class="s">Volver a una cosa</span></button>
+        <button class="tema" type="button" data-tema="Gratitud" style="--n:url(assets/noche/portadas/gratitud-amanecer.jpg);--d:url(assets/dia/portadas/gratitud-amanecer.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Gratitud</span><span class="s">Mirar lo que sí está</span></button>
+        <button class="tema" type="button" data-tema="Cristiana evangélica" style="--n:url(assets/noche/portadas/fe-presencia.jpg);--d:url(assets/dia/portadas/fe-presencia.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Tiempo con Dios</span><span class="s">Oración y Palabra</span></button>
+        <button class="tema" type="button" data-tema="Autoestima" style="--n:url(assets/noche/portadas/autoestima-luz-interior.jpg);--d:url(assets/dia/portadas/autoestima-luz-interior.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Autoestima</span><span class="s">Volver a ti</span></button>
+        <button class="tema" type="button" data-tema="Duelo" style="--n:url(assets/noche/portadas/duelo-acompanar.jpg);--d:url(assets/dia/portadas/duelo-acompanar.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Duelo</span><span class="s">Acompañar la pérdida</span></button>
+        <button class="tema" type="button" data-tema="Respiración" style="--n:url(assets/noche/portadas/respiracion-silencio.jpg);--d:url(assets/dia/portadas/respiracion-silencio.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Respiración</span><span class="s">Solo respirar</span></button>
+        <button class="tema" type="button" data-tema="Sabiduría" style="--n:url(assets/noche/portadas/sabiduria-camino.jpg);--d:url(assets/dia/portadas/sabiduria-camino.jpg)"><span class="foto"></span><span class="ir">Probar <svg width="14" height="14" aria-hidden="true"><use href="#i-adelante"></use></svg></span><span class="t">Sabiduría</span><span class="s">Una idea para hoy</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Lo que hay dentro ─────────────────────────────────────────── -->
+  <section class="tramo" id="dentro" aria-labelledby="dentro-titulo" style="padding-top:0">
+    <div class="wrap">
+      <div class="cabeza">
+        <p class="eyebrow">Lo que hay dentro</p>
+        <h2 class="h2" id="dentro-titulo">Todo gira alrededor de una pausa.</h2>
+      </div>
+      <div class="bento">
+        <article class="tarjeta imagen" style="grid-column:span 4">
+          <p class="eyebrow">Sonidos</p>
+          <h3 class="h3">Mezcla los sonidos de fondo mientras escuchas.</h3>
+          <p>Lluvia, olas, viento, cuencos… Enciende los que quieras y ajusta cada uno durante la sesión. Los cambios entran con un fundido de dos segundos y nunca cortan la voz. Escucharlos no gasta créditos.</p>
+        </article>
+        <article class="tarjeta destacada" style="grid-column:span 2">
+          <svg class="ico" aria-hidden="true"><use href="#i-diario"></use></svg>
+          <h3 class="h3">Tu diario se escribe solo.</h3>
+          <p>Cada sesión deja una página: lo que traías, lo que escuchaste y cómo te fuiste. Tu reflexión, si la añades, no sale del móvil.</p>
+        </article>
+        <article class="tarjeta tercio">
+          <svg class="ico" aria-hidden="true"><use href="#i-auriculares"></use></svg>
+          <h3 class="h3">Una biblioteca para cuando no quieres crear nada.</h3>
+          <p>Sesiones ya preparadas, ordenadas por temas y con buscador. Escucharlas no gasta crédito.</p>
+        </article>
+        <article class="tarjeta tercio">
+          <svg class="ico" aria-hidden="true"><use href="#i-piezaTrazo"></use></svg>
+          <h3 class="h3">Guarda la frase que te quieres llevar.</h3>
+          <p>Al terminar, la sesión te ofrece una idea, o el versículo si hubo Palabra. La guardas como pieza y vuelves a ella cuando haga falta.</p>
+        </article>
+        <article class="tarjeta tercio">
+          <svg class="ico" aria-hidden="true"><use href="#i-sueno"></use></svg>
+          <h3 class="h3">Pensada también para la noche.</h3>
+          <p>Un temporizador que baja el sonido durante el último medio minuto, controles en la pantalla de bloqueo y audio que sigue con el móvil en silencio.</p>
+        </article>
+        <article class="tarjeta imagen plan ancha">
+          <p class="eyebrow">Plan de 21 días</p>
+          <h3 class="h3">21 días de oración y ayuno.</h3>
+          <p>Cada día trae un tema y un pasaje. Avanza cuando tú avanzas: retomas donde lo dejaste, sin recuperar días.</p>
+          <div class="dias" aria-label="Los primeros días del plan">
+            <span>1 · Empezar sin ruido</span><span>2 · Lo que de verdad busco</span><span>3 · Confesión sin excusas</span><span>4 · Un corazón dispuesto</span>
+          </div>
+        </article>
+        <article class="tarjeta ancha">
+          <svg class="ico" aria-hidden="true"><use href="#i-campana"></use></svg>
+          <h3 class="h3">Constancia, sin presión.</h3>
+          <p>Un recordatorio diario a la hora que elijas, con tu propio mensaje. Mi camino te enseña los días que volviste esta semana, sin cifras que te reprochen nada.</p>
+          <p class="meta" style="margin-top:6px">Cuatro voces · 5, 10, 15 o 20 minutos · Español neutro</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Tiempo con Dios ───────────────────────────────────────────── -->
+  <section class="tramo fe" id="fe" aria-labelledby="fe-titulo">
+    <div class="wrap">
+      <div class="cabeza">
+        <p class="eyebrow">Tiempo con Dios</p>
+        <h2 class="h2" id="fe-titulo">Oración, silencio y Palabra. Si tú lo eliges.</h2>
+        <p class="lead">La fe es opcional en Piece of Wisdom. Si la eliges, encontrarás oración de la noche, el plan de 21 días y nueve salmos para meditar. Lee el salmo entero aquí, como en la app, y decide después.</p>
+      </div>
+
+      <div class="salmos">
+        <div class="salmos-lista" id="salmos-lista" role="group" aria-label="Nueve salmos para meditar"></div>
+        <article class="lector" id="lector" aria-live="polite">
+          <div class="encabezado">
+            <h3 class="h3" id="lector-titulo">Salmo 23 · Jehová es mi pastor</h3>
+            <span class="meta" id="lector-sub">Cuando falta confianza</span>
+          </div>
+          <div class="lector-texto" id="lector-texto" tabindex="0" aria-label="Texto del salmo"></div>
+          <div class="pie">
+            <span class="meta">Reina-Valera 1909 · dominio público · texto literal</span>
+            <span class="meta">Leer el salmo no gasta crédito</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="fe-puntos">
+        <div><b>Elegido, nunca impuesto</b><p>El permiso para usar tu tradición espiritual empieza desmarcado, es aparte de todo lo demás y se retira desde Privacidad.</p></div>
+        <div><b>Literal y con su referencia</b><p>El texto bíblico no lo escribe ni lo resume ningún modelo. Cada pasaje lleva su cita y su versión a la vista.</p></div>
+        <div><b>Funciona en un avión</b><p>La Biblia va dentro de la app: 31.102 versículos de Reina-Valera 1909 que se leen sin conexión.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="filo">
+
+  <!-- ── Un minuto ─────────────────────────────────────────────────── -->
+  <section class="tramo" id="minuto" aria-labelledby="minuto-titulo">
+    <div class="wrap minuto">
+      <div class="cabeza" style="margin-bottom:0">
+        <p class="eyebrow">Un minuto</p>
+        <h2 class="h2" id="minuto-titulo">¿Tienes un minuto ahora?</h2>
+        <p class="lead">Sigue la luz del horizonte. Crece mientras tomas aire y se apaga despacio mientras lo sueltas. Seis respiraciones, nada más.</p>
+        <div class="respira-controles">
+          <button class="btn btn-primary" type="button" id="respira-boton">Empezar</button>
+          <label class="interruptor"><input type="checkbox" id="respira-olas"><span class="p-toggle"></span>Con sonido de olas</label>
+        </div>
+      </div>
+      <div class="respira-escena" id="respira-escena">
+        <div class="respira-luz" id="respira-luz" aria-hidden="true"></div>
+        <div class="respira-texto">
+          <p class="respira-fase" id="respira-fase" aria-live="polite">Cuando quieras.</p>
+          <p class="meta" id="respira-cuenta">Cuatro segundos para tomar aire, seis para soltarlo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="filo">
+
+  <!-- ── Privacidad ────────────────────────────────────────────────── -->
+  <section class="tramo" id="privacidad" aria-labelledby="priv-titulo">
+    <div class="wrap">
+      <div class="cabeza">
+        <p class="eyebrow">Privacidad</p>
+        <h2 class="h2" id="priv-titulo">Tú decides qué compartir.</h2>
+        <p class="lead">En Piece of Wisdom se escriben tres cosas distintas, y cada una tiene su sitio.</p>
+      </div>
+      <div class="tres">
+        <article class="escrito">
+          <div class="que"><svg aria-hidden="true"><use href="#i-nota"></use></svg><h3 class="h3">La nota de Hoy</h3></div>
+          <dl>
+            <div><dt>Quién la escribe</dt><dd>Tú.</dd></div>
+            <div><dt>Adónde va</dt><dd>Se guarda en tu móvil. Solo se usa para escribir tu sesión si activas «Usar mis notas»; sin ese permiso, el guion sale del tema y la duración.</dd></div>
+          </dl>
+        </article>
+        <article class="escrito">
+          <div class="que"><svg aria-hidden="true"><use href="#i-piezaTrazo"></use></svg><h3 class="h3">Una pieza</h3></div>
+          <dl>
+            <div><dt>Quién la escribe</dt><dd>La sesión, y tú la eliges.</dd></div>
+            <div><dt>Adónde va</dt><dd>Se queda en tu móvil, enlazada a su audio.</dd></div>
+          </dl>
+        </article>
+        <article class="escrito">
+          <div class="que"><svg aria-hidden="true"><use href="#i-diario"></use></svg><h3 class="h3">Tu reflexión</h3></div>
+          <dl>
+            <div><dt>Quién la escribe</dt><dd>Tú.</dd></div>
+            <div><dt>Adónde va</dt><dd>Solo a tu móvil. No se envía a ningún modelo ni se sincroniza con la nube.</dd></div>
+          </dl>
+        </article>
+      </div>
+      <ul class="promesas">
+        <li><svg aria-hidden="true"><use href="#i-check"></use></svg><span><b>Los permisos empiezan desmarcados.</b> Usar tus notas y usar tu tradición espiritual son dos permisos separados, y los retiras cuando quieras.</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"></use></svg><span><b>Sin correo ni contraseña.</b> La app no te pide correo ni teléfono, y tu nombre es opcional.</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"></use></svg><span><b>Sin publicidad ni analítica.</b> No hay anuncios ni rastreadores de terceros, y tus datos no se venden.</span></li>
+        <li><svg aria-hidden="true"><use href="#i-check"></use></svg><span><b>Borrar tu cuenta es borrarla.</b> Se hace desde la app, con doble confirmación, y se elimina de nuestros servidores.</span></li>
+      </ul>
+      <p style="margin-top:32px"><a href="privacidad.html">Lee la política de privacidad completa</a></p>
+    </div>
+  </section>
+
+  <hr class="filo">
+
+  <!-- ── Precio ────────────────────────────────────────────────────── -->
+  <section class="tramo" id="precio" aria-labelledby="precio-titulo">
+    <div class="wrap">
+      <div class="cabeza">
+        <p class="eyebrow">Precio</p>
+        <h2 class="h2" id="precio-titulo">Empieza gratis.</h2>
+        <p class="lead">Crear una sesión gasta un crédito. Volver a escucharla, la biblioteca, los sonidos y leer los salmos no gastan ninguno.</p>
+      </div>
+      <div class="planes">
+        <article class="plan">
+          <p class="eyebrow">Gratis</p>
+          <h3 class="h3">Para empezar a hacerte un hueco.</h3>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>Créditos cada mes para crear sesiones a tu medida.</li>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>La biblioteca de sesiones y los sonidos de fondo.</li>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>Tu diario, tus piezas, el plan de 21 días y los salmos.</li>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>Lo que ya creaste se descarga y se escucha sin conexión.</li>
+          </ul>
+        </article>
+        <article class="plan premium">
+          <p class="eyebrow">Premium</p>
+          <h3 class="h3">Sostén tu práctica.</h3>
+          <ul>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>30 sesiones creadas para ti al mes.</li>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>Plan mensual o anual. El precio es el que te muestre Google Play en tu país.</li>
+            <li><svg aria-hidden="true"><use href="#i-check"></use></svg>Se renueva sola y se cancela cuando quieras desde Google Play.</li>
+          </ul>
+          <p class="body">Los créditos se renuevan a principios de cada mes.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="filo">
+
+  <!-- ── Preguntas ─────────────────────────────────────────────────── -->
+  <section class="tramo" id="preguntas" aria-labelledby="faq-titulo">
+    <div class="wrap faq-grid">
+      <div class="cabeza">
+        <p class="eyebrow">Preguntas</p>
+        <h2 class="h2" id="faq-titulo">Lo que suele preguntarse.</h2>
+        <p class="body">¿Otra duda? Escríbenos desde <a href="soporte.html">Soporte</a>.</p>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>¿Es una terapia?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>No. Piece of Wisdom es una app de bienestar: no es un dispositivo médico ni sustituye la atención de un profesional.</p>
+          <p>Si has permitido que use tus notas y lo que escribes hace pensar que estás pasándolo muy mal, la app no te prepara una meditación: te dice que eso merece algo más y no gasta ningún crédito.</p>
+        </details>
+        <details>
+          <summary>¿Quién escribe el guion?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>Un modelo de lenguaje, a partir del tema, la duración y, si le das permiso, de lo que escribiste. La voz es sintética. Lo verás indicado siempre junto al botón de crear: «Guion y voz creados con IA».</p>
+        </details>
+        <details>
+          <summary>¿Tengo que ser creyente?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>No. La fe es una opción más. Puedes usar toda la app sin responder a la pregunta sobre tu tradición, y Tiempo con Dios solo aparece si la eliges y das tu permiso.</p>
+        </details>
+        <details>
+          <summary>¿Qué voces hay y cuánto dura una sesión?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>Cuatro voces: Ruth, muy suave, para dormir; Mateo, grave y pausado; Elena, castellana, cálida y lenta; y Samuel, de tono pastoral. Cada sesión dura 5, 10, 15 o 20 minutos.</p>
+        </details>
+        <details>
+          <summary>¿Funciona sin conexión?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>Para crear una sesión hace falta conexión. Lo que ya creaste se descarga en el móvil y se escucha sin red, y la Biblia va dentro de la app.</p>
+        </details>
+        <details>
+          <summary>¿Y si salgo mientras se prepara?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>Sigue preparándose, y Hoy te dice en qué va. Si algo falla por el camino, el crédito no se gasta y tu nota sigue donde estaba.</p>
+        </details>
+        <details>
+          <summary>¿En qué idioma está?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>En español neutro, pensado igual para España, Latinoamérica y quien habla español en Estados Unidos.</p>
+        </details>
+        <details>
+          <summary>¿Cómo borro mis datos?<svg aria-hidden="true"><use href="#i-bajar"></use></svg></summary>
+          <p>Desde la app, en tu espacio → Privacidad y datos → Borrar mi cuenta. Si ya no tienes la app, te contamos <a href="eliminar-datos.html">cómo pedirlo por correo</a>.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Final ─────────────────────────────────────────────────────── -->
+  <section class="final" aria-labelledby="final-titulo">
+    <div class="horizonte" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="eyebrow">Piece of Wisdom</p>
+      <h2 class="h2" id="final-titulo">Hazle un lugar a tu pausa.</h2>
+      <p class="lead">Muy pronto en Google Play. Si quieres probarla antes, escríbenos y te avisamos.</p>
+      <a class="btn btn-primary" href="mailto:yorda891216@gmail.com?subject=Quiero%20probar%20Piece%20of%20Wisdom">Solicitar acceso <svg aria-hidden="true"><use href="#i-adelante"></use></svg></a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div class="contacto">
+        <a class="brand" href="index.html"><img src="assets/icon.png" alt="" width="30" height="30"><span>piece of wisdom</span></a>
+        <span><span class="correo">yorda891216@gmail.com</span> <button class="copiar" type="button" data-copiar="yorda891216@gmail.com"><svg width="14" height="14" aria-hidden="true"><use href="#i-copiar"></use></svg><span>Copiar</span></button></span>
+      </div>
+      <nav aria-label="Legal y ayuda">
+        <a href="privacidad.html">Privacidad</a>
+        <a href="terminos.html">Términos</a>
+        <a href="eliminar-datos.html">Eliminar mis datos</a>
+        <a href="soporte.html">Soporte</a>
+      </nav>
+    </div>
+    <p class="fine">© 2026 Yordano González Fernández. Piece of Wisdom es una app de bienestar; no es un dispositivo médico ni sustituye atención profesional. Guion y voz creados con IA. Los pasajes se citan literalmente de Reina-Valera 1909 (dominio público).</p>
+  </div>
+</footer>
+
+<script src="tema.js"></script>
+<script src="salmos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
