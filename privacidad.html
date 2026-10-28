@@ -55,7 +55,7 @@
         <li>No te pedimos correo, teléfono ni contraseña: tu cuenta es anónima.</li>
         <li>Tus notas, tu diario y tus piezas se guardan en tu móvil.</li>
         <li>Tus notas solo se usan para escribir tus sesiones si activas «Usar mis notas».</li>
-        <li>Tu tradición espiritual solo se guarda con tu permiso expreso, y se borra si lo retiras.</li>
+        <li>Tu tradición espiritual solo sale del móvil con tu permiso expreso, y se borra del servidor si lo retiras.</li>
         <li>No hay publicidad ni analítica de terceros, y no vendemos tus datos.</li>
       </ul>
     </div>
@@ -70,7 +70,7 @@
         <tbody>
           <tr><td>Identificador de instalación</td><td>En tu móvil y en el servidor</td><td>Es tu cuenta anónima. Asocia tus sesiones, tus créditos y tu suscripción sin pedirte ningún dato de contacto.</td></tr>
           <tr><td>Nombre y apodo (opcionales)</td><td>El nombre, en tu móvil. El apodo, también en el servidor</td><td>Que la voz te llame como prefieras. Por eso tu apodo, o tu nombre si no pusiste apodo, se envía al preparar cada sesión.</td></tr>
-          <tr><td>Ajustes: voz, meta, duración y sonidos</td><td>En tu móvil y en el servidor</td><td>Preparar tus sesiones como las quieres.</td></tr>
+          <tr><td>Ajustes: voz, meta y sonidos</td><td>En tu móvil y en el servidor</td><td>Preparar tus sesiones como las quieres.</td></tr>
           <tr><td>Tradición espiritual</td><td>En tu móvil. En el servidor, solo con tu permiso</td><td>Incluir referencias de fe y pasajes bíblicos.</td></tr>
           <tr><td>Notas de Hoy</td><td>Solo en tu móvil</td><td>Si activas «Usar mis notas», se envían para escribir esa sesión y elegir su pasaje. No las guardamos en el servidor.</td></tr>
           <tr><td>Sesiones que creas</td><td>En tu móvil y en el servidor; el audio, además, en un almacenamiento en la nube</td><td>Que puedas volver a escucharlas. Incluye el título, el tema, la duración, la voz, los sonidos, el guion completo, el pasaje citado y datos técnicos de la generación.</td></tr>
@@ -92,7 +92,7 @@
     <h2>Cómo se crean las sesiones</h2>
     <p>El guion lo escribe un modelo de lenguaje y la voz la sintetiza un servicio de texto a voz. Para ello se envían el tema, la duración, la voz, los sonidos, tu apodo y, si lo has permitido, tus notas. No se envían tu historial de sesiones ni tu diario.</p>
     <p>Si has permitido usar tus notas, antes de preparar una sesión el servidor revisa lo que escribiste para detectar señales de que puedas estar en riesgo. Si las encuentra, no prepara la meditación, te muestra un mensaje de ayuda y no gasta ningún crédito.</p>
-    <p>El texto bíblico no pasa por ningún modelo: se lee de una copia de Reina-Valera 1909 (dominio público) que va dentro de la app.</p>
+    <p>El texto bíblico se cita literalmente de Reina-Valera 1909 (dominio público). Los salmos y pasajes que lees en la app salen de una copia que va dentro de ella.</p>
 
     <h2>Para qué los usamos, y con qué base</h2>
     <ul>
@@ -108,7 +108,7 @@
       <li><strong>Modal</strong>: los servidores donde se escribe el guion y se genera el audio.</li>
       <li><strong>El proveedor del modelo de lenguaje y el de síntesis de voz</strong>: reciben la petición de cada sesión para devolver el guion y el audio.</li>
       <li><strong>Cloudflare</strong>: guarda los audios de las sesiones. Los enlaces para escucharlos caducan a las pocas horas.</li>
-      <li><strong>Google Play y RevenueCat</strong>: procesan y validan la suscripción si la contratas. No vemos ni guardamos tus datos de pago.</li>
+      <li><strong>Google Play y RevenueCat</strong>: procesan y validan la suscripción si la contratas. Para saber si tienes Premium, RevenueCat recibe tu identificador anónimo cada vez que abres la app. No vemos ni guardamos tus datos de pago.</li>
       <li><strong>Expo</strong>: entrega las actualizaciones de la app.</li>
     </ul>
     <p>Algunos de estos proveedores pueden tratar los datos fuera del Espacio Económico Europeo. En ese caso lo hacen con las garantías que prevé el RGPD.</p>

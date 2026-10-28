@@ -59,4 +59,5 @@ Si algún día hay dominio (como `kalinda.app` en Kalinda):
 ## Pendiente
 
 - Los botones «Solicitar acceso» abren un correo porque la app aún no está publicada. Cuando salga en Google Play, sustituirlos por el enlace a la ficha (están en `index.html`: cabecera, portada y llamada final).
+- La portada dice que Premium da «30 sesiones creadas para ti al mes», igual que el paywall de la app. Hay que revisarlo cuando se decida qué incluye cada plan: la revisión de producto del 28 de octubre (hallazgo C-05, en `docs/revisiones/` del repo de la app) vio que el plan gratuito ya tiene la biblioteca y la escucha sin conexión.
 - La política de privacidad nombra a Supabase, Modal, Cloudflare, RevenueCat, Google Play y Expo, pero no al proveedor del modelo de lenguaje ni al de la voz, porque el código de la app no los nombra. Conviene añadirlos.
