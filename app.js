@@ -250,7 +250,9 @@
     { f: 0, text: 'Acomódate y suelta los hombros.' },
     { f: 0.2, text: 'No tienes que terminarlo todo para permitirte descansar.' },
     { f: 0.36, text: 'Vuelve al sonido de mi voz, sin prisa.' },
-    { f: 0.5, text: 'Permite que tu respiración te recuerde que estás a salvo, justo aquí.' },
+    // Sin promesas («estás a salvo»): la app tampoco las dice; el filtro del
+    // guion las rechaza.
+    { f: 0.5, text: 'Deja que la respiración vaya a su ritmo, justo aquí.' },
     { f: 0.68, text: 'Deja que el día se quede donde está.' },
     { f: 0.86, text: 'Cuando quieras, vuelve despacio a lo que tienes delante.' },
   ];
