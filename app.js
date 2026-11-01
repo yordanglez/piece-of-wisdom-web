@@ -1,10 +1,12 @@
 /* Piece of Wisdom · la web.
  *
  * Cuatro piezas, sin dependencias:
- *   1. El tema (Noche / Cielo) vive aparte, en tema.js.
+ *   1. El tema (de noche / de día) vive aparte, en tema.js.
  *   2. El móvil de la demo: el mismo recorrido que la app —Hoy, Tu sesión,
- *      Preparando, el reproductor y el cierre— con sus textos. No genera
- *      nada: el guion es un ejemplo fijo y no hay voz, y la página lo dice.
+ *      Preparando, el reproductor y el cierre— con sus textos, la barra de
+ *      cinco huecos con el loto y, encima, lo que suena: la mezcla de
+ *      sonidos y la sesión minimizada. No genera nada: el guion es un ejemplo
+ *      fijo y no hay voz, y la página lo dice.
  *   3. Los sonidos de fondo, sintetizados aquí con Web Audio.
  *   4. El lector de salmos y el minuto de respiración.
  */
@@ -16,15 +18,13 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const ico = (n, attrs = '') => `<svg aria-hidden="true" ${attrs}><use href="#i-${n}"></use></svg>`;
   const reducido = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // El tema (Noche / Cielo) y copiar el correo viven en tema.js, que cargan
-  // todas las páginas.
-  const raiz = document.documentElement;
-  const temaActual = () => (window.powTema ? window.powTema() : 'dark');
+  // El tema (de noche / de día) y copiar el correo viven en tema.js, que
+  // cargan todas las páginas.
 
   // ── 3. Sonidos (Web Audio) ──────────────────────────────────────────────
   // Van antes que la demo porque la demo los usa.
 
-  /** Mientras el minuto de respiración suena, la demo no apaga sus olas. */
+  /** Mientras el minuto de respiración suena, la demo no se calla al salir de la vista. */
   let respirando = false;
 
   const Sonido = (() => {
@@ -163,8 +163,13 @@
     const NOMBRES = Object.keys(RECETAS);
     const curva = v => v * v; // el oído escucha el volumen en curva, no en línea
 
-    function encender(nombre, nivel) {
-      if (!iniciar() || capas[nombre]) return;
+    // Tres canales que no se pisan, como en la app: el ambiente de la sesión,
+    // la mezcla de Sonidos (la de la barra de abajo) y el minuto de respirar.
+    const clave = (nombre, canal) => `${canal}:${nombre}`;
+
+    function encender(nombre, nivel, canal = 'sesion') {
+      const k = clave(nombre, canal);
+      if (!iniciar() || capas[k]) return;
       ctx.resume();
       const g = ctx.createGain();
       g.gain.value = 0;
@@ -172,27 +177,41 @@
       const parar = RECETAS[nombre](g);
       // Entra con un fundido de dos segundos, como en la app.
       g.gain.setTargetAtTime(curva(nivel), ctx.currentTime, 0.6);
-      capas[nombre] = { g, parar };
+      capas[k] = { g, parar };
     }
-    function nivel(nombre, v) {
-      const c = capas[nombre];
+    function nivel(nombre, v, canal = 'sesion') {
+      const c = capas[clave(nombre, canal)];
       if (c) c.g.gain.setTargetAtTime(curva(v), ctx.currentTime, 0.15);
     }
-    function apagar(nombre) {
-      const c = capas[nombre];
+    function apagarClave(k) {
+      const c = capas[k];
       if (!c) return;
-      delete capas[nombre];
+      delete capas[k];
       c.g.gain.setTargetAtTime(0, ctx.currentTime, 0.4);
       setTimeout(() => { try { c.parar(); c.g.disconnect(); } catch (e) { /* ya parado */ } }, 2200);
     }
-    const apagarTodo = () => Object.keys(capas).forEach(apagar);
-    const suena = nombre => !!capas[nombre];
+    const apagar = (nombre, canal = 'sesion') => apagarClave(clave(nombre, canal));
+    const apagarTodo = canal => Object.keys(capas)
+      .filter(k => !canal || k.startsWith(`${canal}:`))
+      .forEach(apagarClave);
+    const suena = (nombre, canal = 'sesion') => !!capas[clave(nombre, canal)];
     const disponible = () => !!(window.AudioContext || window.webkitAudioContext);
     return { NOMBRES, encender, nivel, apagar, apagarTodo, suena, disponible };
   })();
 
-  const ICONO_SONIDO = {
-    'Lluvia suave': 'sonido', Olas: 'calma', Viento: 'respiracion', Fuego: 'vela', 'Cuencos tibetanos': 'campana',
+  // Cada sonido con su familia: el dibujo y el degradado de su baldosa, los
+  // mismos que `SONIDOS` en los tokens de la app.
+  const FAMILIA = {
+    'Lluvia suave': 'lluvia', Olas: 'olas', Viento: 'viento', Fuego: 'fuego', 'Cuencos tibetanos': 'cuencos',
+  };
+  const COLOR_SONIDO = {
+    lluvia: ['#4C5FD6', '#2D2A80'], olas: ['#2A86B4', '#1E3F86'], viento: ['#6E73CF', '#3A3586'],
+    cuencos: ['#B9702A', '#5F331A'], fuego: ['#C4513A', '#67221E'],
+  };
+  const colorSonido = n => COLOR_SONIDO[FAMILIA[n]] || ['#7656EE', '#3A2B8C'];
+  const baldosa = (n, clase = '') => {
+    const [a, b] = colorSonido(n);
+    return `<span class="p-baldosa ${clase}" style="--a:${a};--b:${b}" aria-hidden="true">${ico(`s-${FAMILIA[n]}`)}</span>`;
   };
 
   // ── 2. La demo ──────────────────────────────────────────────────────────
@@ -279,10 +298,49 @@
     prog: 0, preparando: false, lista: null,
     sesion: null, pos: 0, play: false, texto: false, sleep: 0, avisado: false,
     animo: null, pieza: false, idea: 0, reflexion: '',
-    diario: null, escucharTab: 'Sesiones',
+    diario: null, escucharTab: 'Sesiones', borrando: null,
+    // La sesión abierta en el reproductor: sigue sonando al minimizarlo y
+    // vive en la barra de abajo hasta que se termina.
+    enCurso: false,
+    // La mezcla de Sonidos, aparte del ambiente de la sesión.
+    mezcla: { capas: [], nombre: null, pausa: false, abierta: false },
+    mezclasGuardadas: [],
   };
   const PASO = { hoy: 0, intencion: 1, generar: 1, pasaje: 1, progreso: 2, riesgo: 2, player: 3, cierre: 4 };
-  const TABS = ['hoy', 'escuchar', 'camino'];
+  const TABS = ['hoy', 'escuchar', 'camino', 'perfil'];
+  /** Las pantallas que la app pinta siempre de noche, en los dos temas. */
+  const DE_NOCHE = new Set(['escuchar', 'progreso', 'player']);
+
+  /** El saludo, la pregunta, la foto y los sonidos cambian con la hora. */
+  const MOMENTOS = {
+    manana: {
+      saludo: 'Buenos días', sub: 'Un momento antes de empezar.',
+      pregunta: '¿Con qué empiezas hoy?', sonidos: 'Sonidos para empezar',
+      lista: ['Olas', 'Viento', 'Lluvia suave', 'Cuencos tibetanos'], foto: 'assets/dia/primera-luz.jpg',
+    },
+    tarde: {
+      saludo: 'Buenas tardes', sub: 'Una pausa a mitad del día.',
+      pregunta: '¿Qué traes de la mañana?', sonidos: 'Sonidos para la pausa',
+      lista: ['Viento', 'Lluvia suave', 'Cuencos tibetanos', 'Olas'], foto: 'assets/dia/horizonte.jpg',
+    },
+    noche: {
+      saludo: 'Buenas noches', sub: 'Deja el día donde está.',
+      pregunta: '¿Qué te llevas de hoy?', sonidos: 'Sonidos para dormir',
+      lista: ['Lluvia suave', 'Fuego', 'Cuencos tibetanos', 'Viento'], foto: 'assets/dia/portadas/sueno-noche-serena.jpg',
+    },
+  };
+  const momentoDe = () => {
+    const h = new Date().getHours();
+    return h >= 5 && h < 12 ? 'manana' : h >= 12 && h < 20 ? 'tarde' : 'noche';
+  };
+
+  /** Mezclas de ejemplo para «Tus mezclas»: en la app son las que guardas. */
+  const MEZCLAS = [
+    { titulo: 'Tormenta lejana', capas: [{ n: 'Lluvia suave', v: 0.7 }, { n: 'Viento', v: 0.35 }] },
+    { titulo: 'Junto al fuego', capas: [{ n: 'Fuego', v: 0.7 }, { n: 'Cuencos tibetanos', v: 0.3 }] },
+    { titulo: 'La orilla', capas: [{ n: 'Olas', v: 0.75 }, { n: 'Viento', v: 0.25 }] },
+  ];
+  const mezclasTodas = () => [...S.mezclasGuardadas, ...MEZCLAS];
 
   const ahora = () => {
     const d = new Date();
@@ -296,7 +354,10 @@
   };
   const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
   const corta = t => (t.length > 34 ? `${t.slice(0, 32).trimEnd()}…` : t);
-  const portadaUrl = p => `assets/${temaActual() === 'dark' ? 'noche' : 'dia'}/portadas/${p}.jpg`;
+  // Las portadas son las de día en los dos temas, con el tinte encima: de
+  // noche lo pone violeta, de día rosado (`--tinte` en styles.css).
+  const portadaUrl = p => `assets/dia/portadas/${p}.jpg`;
+  const conTinte = url => `background-image:var(--tinte),url(${url})`;
 
   // ── piezas de la interfaz del móvil ──
 
@@ -307,11 +368,93 @@
       ${derecha || '<span style="width:4.8em"></span>'}
     </div>`;
   const toggle = (on, extra = '') => `<span class="p-toggle ${on ? 'on' : ''}" ${extra}></span>`;
-  const tabbar = () => `
-    <nav class="p-tabbar" aria-label="Pestañas de la app">
-      ${[['hoy', 'hoy', 'Hoy'], ['escuchar', 'auriculares', 'Escuchar'], ['camino', 'camino', 'Mi camino']]
-        .map(([v, i, l]) => `<button class="p-tab ${S.vista === v ? 'on' : ''}" data-a="tab" data-v="${v}" ${S.vista === v ? 'aria-current="page"' : ''}>${ico(i)}<span>${l}</span></button>`).join('')}
-    </nav>`;
+  const pestana = ([v, i, l]) => `<button class="p-tab ${S.vista === v ? 'on' : ''}" data-a="tab" data-v="${v}" ${S.vista === v ? 'aria-current="page"' : ''}>${ico(i)}<span>${l}</span></button>`;
+
+  /** El mini-reproductor: la sesión minimizada, hasta que se termina. */
+  const barraSesion = () => {
+    if (!S.enCurso || !S.sesion) return '';
+    const ses = S.sesion;
+    return `
+      <div class="p-suena">
+        <div class="fila">
+          <button class="abrir" data-a="abrir-player" aria-label="Abrir el reproductor: ${esc(ses.titulo)}">
+            <span class="p-miniatura" style="${conTinte(portadaUrl(ses.portada))}"></span>
+            <span class="txt"><span class="tit">${esc(ses.titulo)}</span><span class="sub" id="mini-sub">Tu sesión · ${mmss(S.pos)} de ${mmss(ses.total)}</span></span>
+          </button>
+          <button class="p-circulo" data-a="play" aria-label="${S.play ? 'Pausar la sesión' : 'Reanudar la sesión'}">${ico(S.play ? 'pausa' : 'play')}</button>
+          <button class="icono apagado" data-a="terminar-sesion" aria-label="Terminar la sesión">${ico('cerrar')}</button>
+        </div>
+        <div class="filo"><i id="mini-filo" style="width:${(S.pos / ses.total) * 100}%"></i></div>
+      </div>`;
+  };
+
+  /** La barra de la mezcla: cada sonido con su baldosa y su nivel. */
+  const barraMezcla = () => {
+    const m = S.mezcla;
+    if (!m.capas.length) return '';
+    const titulo = m.nombre || (m.capas.length === 1 ? m.capas[0].n : 'Tu mezcla');
+    const nombres = m.capas.map(x => x.n).join(' · ');
+    const vis = m.capas.slice(0, 4);
+    const resto = m.capas.length - vis.length;
+    return `
+      <div class="p-suena">
+        ${m.abierta ? `
+          <div class="niveles">
+            ${m.capas.map(x => `
+              <div class="nivel">
+                ${baldosa(x.n, 'grande')}
+                <div class="cuerpo">
+                  <div class="cab"><b>${x.n}</b><span data-pct="${x.n}">${Math.round(x.v * 100)} %</span></div>
+                  <input type="range" min="5" max="100" value="${Math.round(x.v * 100)}" data-mezcla="${x.n}" aria-label="Nivel de ${x.n}">
+                </div>
+              </div>`).join('')}
+            <div class="acciones">
+              <button data-a="guardar-mezcla">Guardar como mezcla</button>
+              <button data-a="quitar-mezcla">Quitar todo</button>
+            </div>
+          </div>` : ''}
+        <div class="fila">
+          <span class="p-baldosas" aria-hidden="true">
+            ${vis.map(x => `<span class="una">${baldosa(x.n)}<span class="raya"><i data-raya="${x.n}" style="width:${Math.round(x.v * 100)}%"></i></span></span>`).join('')}
+            ${resto > 0 ? `<span class="p-meta">+${resto}</span>` : ''}
+          </span>
+          <span class="txt"><span class="tit">${esc(titulo)}</span><span class="sub">${m.pausa ? `En pausa · ${nombres}` : nombres}</span></span>
+          <button class="p-circulo" data-a="mezcla-play" aria-label="${m.pausa ? 'Reanudar los sonidos' : 'Pausar los sonidos'}">${ico(m.pausa ? 'play' : 'pausa')}</button>
+          <button class="icono" data-a="mezcla-abrir" aria-label="${m.abierta ? 'Plegar la mezcla' : 'Ver los niveles de la mezcla'}">${ico(m.abierta ? 'bajar' : 'subir')}</button>
+        </div>
+      </div>`;
+  };
+
+  /** Lo de abajo en las pestañas: lo que suena y la barra con el loto. */
+  const abajo = () => `
+    <div class="p-abajo">
+      ${barraMezcla()}${barraSesion()}
+      <nav class="p-tabbar" aria-label="Pestañas de la app">
+        ${pestana(['hoy', 'hoy', 'Hoy'])}${pestana(['escuchar', 'auriculares', 'Escuchar'])}
+        <span class="p-loto-hueco"><button class="p-loto" data-a="loto" aria-label="Preparar una sesión">${ico('loto')}</button></span>
+        ${pestana(['camino', 'camino', 'Mi camino'])}${pestana(['perfil', 'avatar', 'Perfil'])}
+      </nav>
+    </div>`;
+
+  /** Lo que ocupa lo de abajo, para que el final de la pantalla se pueda leer. */
+  const relleno = () => {
+    let em = 14;
+    if (S.mezcla.capas.length) em += 7.4 + (S.mezcla.abierta ? S.mezcla.capas.length * 5.6 + 5.8 : 0);
+    if (S.enCurso && S.sesion) em += 7.4;
+    return em;
+  };
+  /** Una pantalla de pestaña: se desplaza y lleva lo de abajo encima. */
+  const vistaTab = (html, estilo = '') => `
+    <div class="vista" style="padding-bottom:${relleno()}em;${estilo}">${html}</div>${abajo()}`;
+
+  /** Una baldosa de sonido de la mezcla, con su marca de puesto. */
+  const baldosaMezcla = n => {
+    const on = S.mezcla.capas.some(x => x.n === n);
+    const [a, b] = colorSonido(n);
+    return `<button class="p-sonido-baldosa ${on ? 'on' : ''}" style="--a:${a};--b:${b}" data-a="sonido-mezcla" data-v="${n}" aria-pressed="${on}" aria-label="${n}">
+      ${ico(`s-${FAMILIA[n]}`, 'class="dibujo"')}<span class="nom">${n}</span><span class="marca">${ico(on ? 'check' : 'mas')}</span>
+    </button>`;
+  };
 
   // ── vistas ──
 
@@ -319,16 +462,16 @@
 
   V.hoy = () => {
     const n = S.notas.length;
+    const m = MOMENTOS[momentoDe()];
     const trabajo = S.preparando || (S.lista && !S.sesion?.escuchada);
-    return `
-    <div class="vista con-barra" style="padding-left:1.6em;padding-right:1.6em">
-      <div class="banda horizonte-arte" style="top:19.6em;height:26em"></div>
-      <div class="p-fila" style="padding:0 .8em;margin-bottom:1.2em;min-height:4.8em">
-        <span class="p-marca">piece of wisdom</span>
-        <span style="color:var(--secondary);width:2.6em;height:2.6em">${ico('avatar', 'style="width:2.6em;height:2.6em"')}</span>
+    const mezclas = mezclasTodas();
+    return vistaTab(`
+      <div class="p-cabecera" style="${conTinte(m.foto)}"></div>
+      <div class="p-fila p-sobre-foto" style="justify-content:flex-start;gap:.8em;padding:0 .8em;margin-bottom:.8em;min-height:4.8em">
+        ${ico('loto', 'style="width:2.8em;height:2.8em"')}<span style="font-size:1.8em;font-weight:600">piece of wisdom</span>
       </div>
       ${trabajo ? `
-        <button class="p-card" data-a="${S.preparando ? 'ir' : 'escuchar-lista'}" data-v="progreso" style="width:100%;border:0;cursor:pointer;display:flex;align-items:center;gap:1.2em;padding:1.6em 2em;margin-bottom:1.4em;text-align:left;color:var(--fg)">
+        <button class="p-card" data-a="${S.preparando ? 'ir' : 'escuchar-lista'}" data-v="progreso" style="width:100%;cursor:pointer;display:flex;align-items:center;gap:1.2em;padding:1.6em 2em;margin-bottom:1.2em;text-align:left;color:var(--fg)">
           ${ico(S.preparando ? 'reloj' : 'play', 'style="width:2em;height:2em;flex:none"')}
           <span style="flex:1;min-width:0;display:grid;gap:.2em">
             <span class="p-control">${S.preparando ? 'Preparando tu sesión' : 'Tu sesión está lista'}</span>
@@ -336,42 +479,48 @@
           </span>
           ${ico('chevron', 'style="width:1.9em;height:1.9em;color:var(--secondary)"')}
         </button>` : ''}
-      <div style="padding:1.2em .8em 9.6em;display:grid;gap:1em">
-        <p class="p-meta">${hoyLargo()}</p>
-        <p class="p-hero">Lo que va pasando.</p>
-        <p class="p-body grande">¿Qué traes hoy?</p>
+      <div class="p-sobre-foto" style="padding:0 .8em;margin:2.8em 0 7.4em;display:grid;gap:.6em">
+        <p class="p-hero" style="font-size:3.4em;line-height:1.18">${m.saludo}.</p>
+        <p style="font-size:1.7em;line-height:1.35">${m.sub}</p>
       </div>
-      <div class="p-card" style="padding:1.8em 2em 1.4em;display:grid;gap:1em;margin-bottom:1.4em">
-        <label class="p-meta" for="demo-nota">Nueva nota</label>
-        <textarea id="demo-nota" class="p-textarea" rows="2" maxlength="500" placeholder="Escribe lo que traes ahora…">${esc(S.borrador)}</textarea>
-        <div style="display:flex;justify-content:flex-end">
-          <button class="p-pildora" data-a="guardar-nota" id="btn-guardar-nota" ${S.borrador.trim() ? '' : 'disabled'}><span>Guardar nota</span></button>
+      <div class="p-card p-cuaderno">
+        <div class="escribir">
+          <span class="p-baldosita" aria-hidden="true">${ico('nota')}</span>
+          <textarea id="demo-nota" class="p-textarea" rows="1" maxlength="500" aria-label="Nueva nota" placeholder="${m.pregunta}">${esc(S.borrador)}</textarea>
+          <button class="p-enviar" data-a="guardar-nota" id="btn-guardar-nota" aria-label="Guardar nota" ${S.borrador.trim() ? '' : 'disabled'}>${ico('subir')}</button>
         </div>
-      </div>
-      ${n ? `
-        <div class="p-destacada" style="margin-bottom:1.4em">
-          <div class="p-fila" style="margin-bottom:1.6em">
-            <span style="font-size:1.5em;font-weight:600">Tu día</span>
-            <span class="p-meta">${n} ${n === 1 ? 'nota' : 'notas'}</span>
-          </div>
-          ${S.notas.map((x, i) => `
-            <div class="p-linea">
-              <div class="raya"><i class="punto"></i>${i < n - 1 ? '<i class="hilo"></i>' : ''}</div>
-              <div class="cuerpo">
-                <span class="p-meta">${x.hora}</span>
-                <p class="texto">${esc(x.texto)}</p>
-                <button class="p-cristal" data-a="desde" data-id="${x.id}" aria-label="Sesión de la nota de las ${x.hora}"><span>Sesión de esto</span></button>
+        ${S.notas.map(x => `
+          <div class="nota">
+            <span class="hora">${x.hora}</span>
+            <div style="flex:1;min-width:0">
+              <p class="texto">${esc(x.texto)}</p>
+              <div class="pie">
+                <button class="p-enlace-chico" data-a="desde" data-id="${x.id}" aria-label="Sesión de la nota de las ${x.hora}"><span>Sesión de esto</span>${ico('adelante')}</button>
+                <button class="p-icono chico" data-a="borrar-nota" data-id="${x.id}" aria-label="Borrar la nota de las ${x.hora}" style="color:var(--muted);margin-right:-1.2em">${ico('papelera')}</button>
               </div>
-            </div>`).join('')}
-        </div>` : ''}
-      <div class="p-card" style="display:grid;gap:.8em">
-        <button class="p-boton" data-a="preparar" ${n ? '' : 'disabled'}><span>Preparar una sesión con mi día</span>${ico('adelante')}</button>
-        <button class="p-enlace" data-a="ir" data-v="intencion"><span>Prefiero elegir un tema</span>${ico('adelante')}</button>
+            </div>
+          </div>`).join('')}
       </div>
-      <p class="p-meta apagado" style="text-align:right;margin-top:1em;padding:0 1.2em">
+      <button class="p-boton" data-a="preparar" ${n ? '' : 'disabled'}><span>Preparar una sesión con mi día</span>${ico('adelante')}</button>
+      <button class="p-enlace" data-a="ir" data-v="intencion" style="margin-top:.4em"><span>Prefiero elegir un tema</span>${ico('adelante')}</button>
+      <p class="p-meta apagado p-centro" style="margin-bottom:2.4em">
         ${n ? '1 crédito · Guion y voz creados con IA' : 'Escribe algo, o elige un tema · Guion y voz creados con IA'}
       </p>
-    </div>${tabbar()}`;
+      <div class="p-cabeza"><p class="p-section">${m.sonidos}</p><button data-a="ver-sonidos">Ver todos</button></div>
+      <div class="p-carril">${m.lista.map(baldosaMezcla).join('')}</div>
+      <div class="p-cabeza"><p class="p-section">Tus mezclas</p></div>
+      <div class="p-carril">
+        ${mezclas.map((x, k) => {
+          const on = S.mezcla.nombre === x.titulo;
+          return `<button class="p-mezcla-baldosa ${on ? 'on' : ''}" data-a="poner-mezcla" data-v="${k}" aria-pressed="${on}">
+            <span class="p-baldosas" aria-hidden="true">${x.capas.map(c => baldosa(c.n)).join('')}</span>
+            <span class="tit">${esc(x.titulo)}</span>
+            <span class="p-meta">${x.capas.map(c => c.n).join(' · ')}</span>
+          </button>`;
+        }).join('')}
+      </div>
+      <p class="p-meta apagado" style="padding:0 .4em">Los sonidos siguen en la barra de abajo aunque cambies de pestaña. No gastan crédito.</p>
+    `, 'padding-left:1.6em;padding-right:1.6em');
   };
 
   V.intencion = () => {
@@ -385,7 +534,7 @@
       <div style="display:grid;gap:1em">
         ${lista.map(t => `
           <button class="p-opcion ${t.cat === S.cat ? 'on' : ''}" data-a="cat" data-v="${t.cat}" aria-pressed="${t.cat === S.cat}">
-            ${ico(t.icon)}
+            <span class="p-miniatura" style="${conTinte(portadaUrl(t.portada))}"></span>
             <span class="txt"><span class="p-control">${t.label}</span><span class="p-meta">${t.sub}</span></span>
             ${t.cat === S.cat ? `<span class="p-check">${ico('check')}</span>` : ico('chevron', 'style="width:1.8em;height:1.8em;color:var(--muted)"')}
           </button>`).join('')}
@@ -527,35 +676,48 @@
         </div>
       </div>`;
     }
+    const sonido = S.sonidos.length ? S.sonidos.map(x => x.n).join(' · ') : 'Solo la voz';
     return `
     <div class="vista fija" style="padding-bottom:2.2em">
-      <div class="banda horizonte-arte" style="top:24em;height:30em"></div>
-      ${topbar('', 'bajar', 'Cerrar la sesión', 'cerrar-sesion', `
-        <button class="p-fila" data-a="capa" data-v="timer" aria-label="Temporizador" style="border:0;background:transparent;cursor:pointer;gap:.8em;padding:1.2em;color:${S.sleep ? 'var(--light)' : 'var(--fg)'}">
-          ${ico('sueno', 'style="width:2em;height:2em"')}<span class="p-control">${S.sleep ? timer.label.replace('Al terminar la sesión', 'Al terminar') : 'Temporizador'}</span>
-        </button>`)}
-      <p class="p-eyebrow" style="margin-bottom:.8em">Tu sesión</p>
-      <p class="p-title" style="margin-bottom:.8em">${esc(ses.titulo)}</p>
-      <p class="p-meta">${Math.round(ses.total / 60)} min · Voz ${ses.voz}</p>
+      <div class="p-cabecera" style="height:56em;${conTinte(portadaUrl(ses.portada))}"></div>
+      <div class="p-sobre-foto">
+        ${topbar('', 'bajar', 'Minimizar la sesión', 'minimizar', `
+          <button class="p-cristal-pildora ${S.sleep ? 'on' : ''}" data-a="capa" data-v="timer" aria-label="Temporizador">
+            ${ico('sueno')}<span>${S.sleep ? timer.label.replace('Al terminar la sesión', 'Al terminar') : 'Temporizador'}</span>
+          </button>`)}
+      </div>
+      <div class="p-sobre-foto" style="display:grid;justify-items:center;gap:.8em;text-align:center;margin-top:.6em">
+        <span style="font-size:1.4em;font-weight:600;color:var(--on-velo-suave)">Tu sesión</span>
+        <p class="p-title">${esc(ses.titulo)}</p>
+        <span class="p-cristal-pildora" style="min-height:3.2em;cursor:default"><span style="font-size:1.3em;font-weight:400">${Math.round(ses.total / 60)} min · Voz ${ses.voz}</span></span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:2.2em;margin:3.6em 0 2em">
+        <button class="p-salto" data-a="seek" data-v="-15" aria-label="Retroceder 15 segundos">${ico('saltarAtras')}<b>15</b></button>
+        <button class="p-aro" data-a="play" aria-label="${S.play ? 'Pausar' : 'Reproducir'}"><span>${ico(S.play ? 'pausa' : 'play')}</span></button>
+        <button class="p-salto" data-a="seek" data-v="15" aria-label="Avanzar 15 segundos">${ico('saltarAdelante')}<b>15</b></button>
+      </div>
       <div style="margin-top:auto">
-        <p class="p-phrase p-centro" id="frase" style="margin-bottom:1.1em;min-height:4em">${esc(l[i].text)}</p>
-        <div class="p-barra" id="barra" role="slider" tabindex="0" aria-label="Posición de la sesión" aria-valuemin="0" aria-valuemax="${ses.total}" aria-valuenow="${Math.round(S.pos)}" aria-valuetext="${mmss(S.pos)} de ${mmss(ses.total)}">
-          ${marca ? `<i style="position:absolute;left:${(marca.at / ses.total) * 100}%;top:-.3em;width:.2em;height:1em;background:var(--light);border-radius:.1em"></i>` : ''}
-          <div class="lleno" style="width:${pct}%"></div><div class="luz" style="left:${pct}%"></div>
+        <p class="p-phrase p-centro" id="frase" style="margin-bottom:1em;min-height:2.66em">${esc(l[i].text)}</p>
+        <div style="display:flex;align-items:center;gap:1.2em" class="p-meta">
+          <span id="t-pos" style="min-width:3.8em;font-variant-numeric:tabular-nums">${mmss(S.pos)}</span>
+          <div class="p-barra" id="barra" style="flex:1" role="slider" tabindex="0" aria-label="Posición de la sesión" aria-valuemin="0" aria-valuemax="${ses.total}" aria-valuenow="${Math.round(S.pos)}" aria-valuetext="${mmss(S.pos)} de ${mmss(ses.total)}">
+            ${marca ? `<i style="position:absolute;left:${(marca.at / ses.total) * 100}%;top:-.3em;width:.2em;height:1em;background:var(--light);border-radius:.1em"></i>` : ''}
+            <div class="lleno" style="width:${pct}%"></div><div class="luz" style="left:${pct}%"></div>
+          </div>
+          <span style="min-width:3.8em;text-align:right;font-variant-numeric:tabular-nums">${mmss(ses.total)}</span>
         </div>
-        <div class="p-tiempos p-meta"><span id="t-pos">${mmss(S.pos)}</span><span>${mmss(ses.total)}</span></div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:2.6em;margin:1.8em 0 2.4em">
-          <button class="p-salto" data-a="seek" data-v="-15" aria-label="Retroceder 15 segundos">${ico('saltarAtras')}<b>15</b></button>
-          <button class="p-play" data-a="play" aria-label="${S.play ? 'Pausar' : 'Reproducir'}">${ico(S.play ? 'pausa' : 'play')}</button>
-          <button class="p-salto" data-a="seek" data-v="15" aria-label="Avanzar 15 segundos">${ico('saltarAdelante')}<b>15</b></button>
-        </div>
-        <div style="display:flex;gap:1.2em">
-          <button class="p-boton secundario" data-a="capa" data-v="sonido">${ico('niveles')}<span>Sonido</span></button>
+        <button class="p-card" data-a="capa" data-v="sonido" aria-label="Sonido de la sesión" style="width:100%;margin-top:1.6em;padding:1.2em 1.4em;border-radius:2em;display:flex;align-items:center;gap:1.4em;cursor:pointer;text-align:left;color:var(--fg)">
+          <span class="p-baldosita" style="border-radius:50%;width:4.4em;height:4.4em">${ico('niveles')}</span>
+          <span style="flex:1;min-width:0;display:grid;gap:.2em"><span class="p-control" style="font-weight:600">Sonido</span><span class="p-meta" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(sonido)}</span></span>
+          ${ico('chevron', 'style="width:1.8em;height:1.8em;color:var(--muted)"')}
+        </button>
+        <div style="display:flex;gap:1.2em;margin-top:1.2em">
           ${marca
             ? `<button class="p-boton secundario" data-a="saltar" data-v="${marca.at}">${ico('sabiduria')}<span>Ir al pasaje</span></button>`
             : `<button class="p-boton secundario" data-a="texto-dentro">${ico('texto')}<span>Ver texto</span></button>`}
+          <button class="p-boton secundario" data-a="terminar-sesion">${ico('check')}<span>Terminar</span></button>
         </div>
-        <p class="p-meta p-centro" style="margin-top:1.6em">Guion y voz creados con IA</p>
+        <p class="p-meta p-centro" style="margin-top:1.4em">Guion y voz creados con IA</p>
       </div>
     </div>`;
   };
@@ -570,16 +732,18 @@
       <div class="banda primera-arte" style="top:13em;height:24em"></div>
       ${topbar('', 'cerrar', 'Terminar', 'terminar')}
       <p class="p-eyebrow" style="margin-bottom:1em">Al terminar</p>
-      <p class="p-hero" style="margin-bottom:12em">¿Cómo te vas?</p>
+      <p class="p-hero" style="margin-bottom:10em">¿Cómo te vas?</p>
       <div class="p-animos" style="margin-bottom:2.2em" role="group" aria-label="Cómo te vas">
-        ${ANIMOS.map(a => `<button class="p-animo ${S.animo === a.key ? 'on' : ''}" data-a="animo" data-v="${a.key}" aria-pressed="${S.animo === a.key}"><i></i><span>${a.label}</span></button>`).join('')}
+        ${ANIMOS.map(a => `<button class="p-animo ${S.animo === a.key ? 'on' : ''}" data-a="animo" data-v="${a.key}" aria-pressed="${S.animo === a.key}">${ico(`cara-${a.key}`)}<span>${a.label}</span></button>`).join('')}
       </div>
-      <p class="p-eyebrow" style="color:var(--secondary);margin-bottom:.8em">${p ? 'Una Palabra para llevarte' : 'Una idea para llevarte'}</p>
+      <div class="p-card" style="margin-bottom:2.2em">
+      <p class="p-eyebrow" style="margin-bottom:.8em">${p ? 'Una Palabra para llevarte' : 'Una idea para llevarte'}</p>
       <p class="p-phrase" style="margin-bottom:.8em">${esc(p ? `“${p.text}”` : idea)}</p>
-      <div class="p-fila" style="margin-bottom:2.2em">
+      <div class="p-fila">
         ${p ? `<span class="p-meta">${p.ref}</span>` : ''}
         <button data-a="pieza" style="border:0;background:transparent;cursor:pointer;padding:.4em 0;color:var(--light);font-size:1.3em;font-weight:600">${S.pieza ? 'Guardada como pieza ✓' : 'Guardar como pieza'}</button>
         ${p ? '' : `<button data-a="otra" style="border:0;background:transparent;cursor:pointer;padding:.4em 0;color:var(--light);display:flex;gap:.6em;align-items:center"><span style="font-size:1.3em">Otra frase</span>${ico('adelante', 'style="width:1.4em;height:1.4em"')}</button>`}
+      </div>
       </div>
       <label class="p-control p-acento" for="demo-reflexion" style="display:block;margin-bottom:1em">Tu reflexión</label>
       <div class="p-campo">
@@ -592,63 +756,81 @@
     </div>`;
   };
 
-  V.escuchar = () => `
-    <div class="vista con-barra">
+  V.escuchar = () => vistaTab(`
       <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em">
-        <span class="p-marca">Escuchar</span>
+        <span class="p-title">Escuchar</span>
       </div>
-      <div style="display:flex;padding:.4em;border-radius:99em;background:var(--surface-low);margin-bottom:2.2em" role="tablist" aria-label="Sesiones o sonidos">
-        ${['Sesiones', 'Sonidos'].map(t => `<button role="tab" aria-selected="${S.escucharTab === t}" data-a="esc-tab" data-v="${t}" style="flex:1;min-height:4.4em;border:0;border-radius:99em;cursor:pointer;font-size:1em;background:${S.escucharTab === t ? 'var(--encendido)' : 'transparent'};color:${S.escucharTab === t ? 'var(--on-encendido)' : 'var(--fg)'}"><span style="font-size:1.4em;font-weight:${S.escucharTab === t ? 600 : 400}">${t}</span></button>`).join('')}
+      <div style="display:flex;padding:.4em;border-radius:99em;background:var(--surface-low);border:1px solid var(--card-borde);margin-bottom:2.2em" role="tablist" aria-label="Sesiones o sonidos">
+        ${['Sesiones', 'Sonidos'].map(t => `<button role="tab" aria-selected="${S.escucharTab === t}" data-a="esc-tab" data-v="${t}" style="flex:1;min-height:4.4em;border:0;border-radius:99em;cursor:pointer;font-size:1em;background:${S.escucharTab === t ? 'var(--grad)' : 'transparent'};color:${S.escucharTab === t ? 'var(--on-encendido)' : 'var(--fg)'}"><span style="font-size:1.4em;font-weight:${S.escucharTab === t ? 600 : 400}">${t}</span></button>`).join('')}
       </div>
       ${S.escucharTab === 'Sesiones' ? `
         <p class="p-section" style="margin-bottom:1.2em">Para esta noche</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2em">
           ${BIBLIOTECA.map((b, k) => `
             <button data-a="biblioteca" data-v="${k}" style="border:0;background:transparent;padding:0;cursor:pointer;text-align:left;color:var(--fg);display:grid;gap:.8em">
-              <span class="p-portada" style="background-image:url(${portadaUrl(b.portada)})"></span>
-              <span style="font-size:1.5em;line-height:1.3">${b.titulo}</span>
+              <span class="p-portada" style="${conTinte(portadaUrl(b.portada))}"></span>
+              <span style="font-size:1.5em;line-height:1.3;font-weight:600">${b.titulo}</span>
               <span class="p-meta">${b.min} min · ${temaDe(b.cat).label}</span>
             </button>`).join('')}
         </div>
         <p class="p-meta p-centro" style="margin-top:2em">Escuchar de la biblioteca no gasta crédito.</p>` : `
-        <div class="p-card" style="padding:.6em 2em">${filasSonido()}</div>
-        <p class="p-meta" style="margin-top:1.6em">Toca para encenderlos y mézclalos a tu gusto. No consumen créditos. Aquí se generan en tu navegador; en la app hay catorce.</p>`}
-    </div>${tabbar()}`;
+        <div class="p-rejilla">${Sonido.NOMBRES.map(baldosaMezcla).join('')}</div>
+        <p class="p-meta" style="margin-top:1.6em">Toca para encenderlos: se quedan en la barra de abajo, donde ajustas cada uno o guardas la mezcla. No consumen créditos. Aquí se generan en tu navegador; en la app hay catorce.</p>`}
+    `);
 
   V.camino = () => {
     const d = S.diario;
     if (!d) {
       return `
-      <div class="vista con-barra">
-        <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-marca">Mi camino</span></div>
-        <p class="p-title" style="margin-bottom:1em">Aquí se irá quedando tu camino.</p>
+      ${vistaTab(`
+        <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-title">Mi camino</span></div>
+        <p class="p-detail" style="margin-bottom:1em">Aquí se irá quedando tu camino.</p>
         <p class="p-body" style="margin-bottom:2.2em">Cuando escuches tu primera sesión, aparecerán aquí los audios, las frases que decidas guardar y los días en que te hiciste un hueco. Tu diario no necesita esperar a nada.</p>
         <div style="display:grid;place-items:center;margin-bottom:2.4em">
-          <div style="width:19em;height:19em;border-radius:9.5em;background:var(--arte-primera-luz) center / cover;box-shadow:inset 0 0 0 1px var(--selection-border), 0 1.4em 3.4em -1.4em var(--shadow)"></div>
+          <div style="width:19em;height:19em;border-radius:9.5em;background:var(--arte-primera-luz) center / cover;background-blend-mode:multiply,normal;box-shadow:inset 0 0 0 1px var(--selection-border), 0 1.4em 3.4em -1.4em var(--shadow)"></div>
         </div>
         <button class="p-boton" data-a="tab" data-v="hoy" style="margin-bottom:1em"><span>Crear mi primera sesión</span>${ico('adelante')}</button>
         <button class="p-boton secundario" data-a="tab" data-v="escuchar"><span>Explorar la biblioteca</span></button>
         <p class="p-meta p-centro" style="margin-top:1.4em">Escuchar de la biblioteca no gasta crédito.</p>
-      </div>${tabbar()}`;
+      `)}`;
     }
     const animo = ANIMOS.find(a => a.key === d.animo);
     const bloque = (titulo, cuerpo) => `<div style="display:grid;gap:.6em;padding:1.6em 0;border-top:1px solid var(--separator)"><p class="p-eyebrow" style="color:var(--secondary)">${titulo}</p>${cuerpo}</div>`;
-    return `
-      <div class="vista con-barra">
-        <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-marca">Mi camino</span></div>
+    return vistaTab(`
+        <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-title">Mi camino</span></div>
         <p class="p-hero" style="margin-bottom:2em">Esta semana volviste <span class="p-acento">1 día</span>.</p>
         <div class="p-card">
           <p class="p-meta" style="margin-bottom:.4em">${hoyLargo()}</p>
           <p class="p-section" style="margin-bottom:1em">Tu diario de hoy</p>
           ${d.notas.length ? bloque('Lo que traías', d.notas.map(x => `<p class="p-body">${esc(x.texto)}</p>`).join('')) : ''}
           ${bloque('Lo que escuchaste', `<p class="p-control">${esc(d.titulo)}</p><p class="p-meta">${d.min} min · Voz ${d.voz}</p>`)}
-          ${animo ? bloque('Cómo te fuiste', `<p class="p-control" style="display:flex;align-items:center;gap:.6em"><i style="width:1em;height:1em;border-radius:50%;background:var(--selection);display:inline-block"></i>${animo.label}</p>`) : ''}
+          ${animo ? bloque('Cómo te fuiste', `<p class="p-control" style="display:flex;align-items:center;gap:.8em">${ico(`cara-${animo.key}`, 'style="width:2.4em;height:2.4em"')}${animo.label}</p>`) : ''}
           ${d.pieza ? bloque('Una idea para llevarte', `<p class="p-body">${esc(d.pieza)}</p>`) : ''}
           ${d.reflexion ? bloque('Tu reflexión', `<p class="p-body">${esc(d.reflexion)}</p><p class="p-meta">Solo tú ves tu diario. No se usa para crear sesiones.</p>`) : ''}
         </div>
         <p class="p-meta" style="margin-top:1.4em">Cada sesión escribe una página. No hay que llenar nada: se compone con lo que ya hiciste.</p>
-      </div>${tabbar()}`;
+      `);
   };
+
+  V.perfil = () => vistaTab(`
+      <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-title">Perfil</span></div>
+      <div style="display:grid;justify-items:center;gap:.8em;margin-bottom:2.4em;text-align:center">
+        <span class="p-avatar" aria-hidden="true">${ico('loto')}</span>
+        <p class="p-section">Tu cuenta</p>
+        <p class="p-meta">En la demo no hay cuenta: lo que escribes no sale de esta página.</p>
+      </div>
+      <div class="p-destacada" style="display:grid;gap:.6em;margin-bottom:1.6em">
+        <p style="font-size:1.4em;font-weight:600;color:var(--on-destacada-suave)">Tu plan</p>
+        <p class="p-section">Gratis</p>
+        <p class="p-meta">10 créditos al empezar y 2 más cada mes. La biblioteca, los sonidos y los salmos no gastan ninguno.</p>
+      </div>
+      <div class="p-grupo">
+        <button class="p-row" data-a="capa" data-v="voz">${ico('microfono')}<span class="lab">Voz preferida</span><span class="val">${S.voz}</span>${ico('chevron')}</button>
+        <button class="p-row" data-a="fe-perfil" role="switch" aria-checked="${S.fe}">${ico('sabiduria')}<span class="lab">Referencias de fe</span>${toggle(S.fe)}</button>
+        <button class="p-row" data-a="tab" data-v="camino">${ico('diario')}<span class="lab">Mi diario</span>${ico('chevron')}</button>
+      </div>
+      <p class="p-meta" style="margin-top:1.4em;padding:0 .4em">En la app aquí están también la privacidad, los avisos y tus datos.</p>
+  `);
 
   function filasSonido() {
     return Sonido.NOMBRES.map(n => {
@@ -656,7 +838,7 @@
       const on = !!capa;
       return `
         <div class="p-sonido">
-          ${ico(ICONO_SONIDO[n])}
+          ${baldosa(n)}
           <span class="nombre">${n}</span>
           <button class="p-toggle ${on ? 'on' : ''}" data-a="sonido" data-v="${n}" role="switch" aria-checked="${on}" aria-label="${n}"></button>
           <input type="range" min="0" max="100" value="${Math.round((capa ? capa.v : 0.6) * 100)}" data-nivel="${n}" aria-label="Volumen de ${n}" ${on ? '' : 'disabled'}>
@@ -704,6 +886,13 @@
         <p class="p-meta p-centro" style="margin:1.6em 0 1.8em">El sonido bajará suavemente durante el último medio minuto.</p>
         <button class="p-boton" data-a="cerrar-capa"><span>Aplicar temporizador</span></button>
       </div>`,
+    borrar: () => `
+      <div class="p-dialogo" role="alertdialog" aria-modal="true" aria-labelledby="dlg-borrar">
+        <p class="p-section p-centro" id="dlg-borrar" style="margin-bottom:.6em">¿Borrar esta nota?</p>
+        <p class="p-body p-centro" style="margin-bottom:2.2em">Se quita de tu día. No se puede deshacer.</p>
+        <button class="p-boton" data-a="borrar-si"><span>Borrar</span></button>
+        <button class="p-boton secundario" data-a="cerrar-capa" style="margin-top:1em"><span>Cancelar</span></button>
+      </div>`,
     fe: () => `
       <div class="p-dialogo" role="alertdialog" aria-modal="true" aria-labelledby="dlg-fe">
         <p class="p-section p-centro" id="dlg-fe" style="margin-bottom:.6em">¿Incluir referencias de fe?</p>
@@ -737,13 +926,15 @@
   const NOMBRE_VISTA = {
     hoy: 'Hoy', intencion: 'Elegir un tema', generar: 'Tu sesión', pasaje: 'Tu Palabra bíblica',
     progreso: 'Preparando tu sesión', riesgo: 'Hoy no', player: 'Reproductor', cierre: 'Al terminar',
-    escuchar: 'Escuchar', camino: 'Mi camino',
+    escuchar: 'Escuchar', camino: 'Mi camino', perfil: 'Perfil',
   };
 
   function pintar(enfocar) {
     const anterior = vistaEl.dataset.vista;
     vistaEl.innerHTML = V[S.vista]();
     vistaEl.dataset.vista = S.vista;
+    pantallaEl.classList.toggle('de-noche', DE_NOCHE.has(S.vista));
+    pantallaEl.classList.toggle('foto-arriba', S.vista === 'hoy' || (S.vista === 'player' && !S.texto));
     pintarCapa();
     pintarPasos();
     if (anterior !== S.vista) {
@@ -761,14 +952,30 @@
     $('.p-hoja button, .p-dialogo button', capasEl)?.focus({ preventScroll: true });
   }
 
+  // Salir del reproductor ya no para la sesión: la minimiza, y sigue en la
+  // barra de abajo. Tampoco la mezcla de Sonidos se calla al cambiar de
+  // pestaña; se para desde su barra.
   function ir(v, { apilar = true } = {}) {
     if (apilar && S.vista !== v) S.pila.push(S.vista);
-    if (S.vista === 'escuchar' && v !== 'escuchar' && !respirando) Sonido.apagarTodo();
     S.vista = v;
     S.capa = null;
-    if (v !== 'player') { S.texto = false; pausar(); }
+    if (v === 'player' && S.sesion) S.enCurso = true;
+    if (v !== 'player') S.texto = false;
     pintar();
-    vistaEl.scrollTop = 0;
+    const vista = $('.vista', vistaEl);
+    if (vista) vista.scrollTop = 0;
+  }
+  /** Termina la sesión en curso: la para y la quita de la barra. */
+  function terminarSesion() {
+    pausar();
+    S.enCurso = false;
+    S.sleep = 0;
+  }
+  function aCierre() {
+    terminarSesion();
+    S.animo = null; S.pieza = false; S.idea = 0; S.reflexion = '';
+    S.pila = ['hoy'];
+    ir('cierre', { apilar: false });
   }
   function atras() {
     const v = S.pila.pop() || 'hoy';
@@ -792,9 +999,10 @@
       return;
     }
     const tema = temaDe(S.cat);
+    terminarSesion();
     S.lista = null;
     S.sesion = {
-      titulo: tema.titulo, cat: S.cat, voz: S.voz, total: S.dur * 60,
+      titulo: tema.titulo, cat: S.cat, voz: S.voz, total: S.dur * 60, portada: tema.portada,
       palabra: S.biblia ? palabraDe(S.cat) : null, escuchada: false,
     };
     S.prog = 0;
@@ -841,7 +1049,7 @@
     S.play = true;
     S.sesion.escuchada = true;
     S.inicioSleep = S.pos;
-    S.sonidos.forEach(x => Sonido.encender(x.n, x.v));
+    S.sonidos.forEach(x => Sonido.encender(x.n, x.v, 'sesion'));
     ultimo = performance.now();
     clearInterval(playT);
     playT = setInterval(tic, 200);
@@ -856,7 +1064,7 @@
     if (!S.play) return;
     S.play = false;
     clearInterval(playT);
-    Sonido.apagarTodo();
+    Sonido.apagarTodo('sesion');
   }
   function tic() {
     const t = performance.now();
@@ -867,14 +1075,29 @@
     const fin = S.pos >= S.sesion.total || (S.sleep > 0 && transcurrido >= S.sleep * 60);
     if (fin) {
       pausar();
-      if (S.vista === 'player') {
-        if (S.pos >= S.sesion.total) { setTimeout(() => { if (S.vista === 'player') ir('cierre'); }, 900); }
-        pintar();
+      if (S.vista === 'player' && S.pos >= S.sesion.total) {
+        setTimeout(() => { if (S.vista === 'player') aCierre(); }, 900);
       }
+      // Minimizada, se queda en la barra en pausa hasta que la cierres.
+      if (S.vista === 'player' || TABS.includes(S.vista)) pintarConScroll();
       return;
     }
-    if (S.vista !== 'player') return;
-    actualizarReproductor();
+    if (S.vista === 'player') actualizarReproductor();
+    else actualizarMini();
+  }
+  /** El mini-reproductor avanza sin repintar la pantalla de debajo. */
+  function actualizarMini() {
+    const sub = $('#mini-sub');
+    if (!sub) return;
+    sub.textContent = `Tu sesión · ${mmss(S.pos)} de ${mmss(S.sesion.total)}`;
+    $('#mini-filo').style.width = `${(S.pos / S.sesion.total) * 100}%`;
+  }
+  /** Repinta y deja la pantalla donde estaba: las barras no la mueven. */
+  function pintarConScroll() {
+    const y = $('.vista', vistaEl)?.scrollTop || 0;
+    pintar();
+    const v = $('.vista', vistaEl);
+    if (v) v.scrollTop = y;
   }
   function actualizarReproductor() {
     const { l, i } = lineaActual();
@@ -900,20 +1123,92 @@
     // Los pasos de la izquierda llevan a cada pantalla con un ejemplo listo.
     if (paso >= 1 && !S.notas.length) guardarNota('Mañana tengo una entrevista y no paro de darle vueltas.');
     if (paso >= 3 && !S.sesion) {
-      S.sesion = { titulo: temaDe(S.cat).titulo, cat: S.cat, voz: S.voz, total: S.dur * 60, palabra: S.biblia ? palabraDe(S.cat) : null, escuchada: false };
+      S.sesion = { titulo: temaDe(S.cat).titulo, cat: S.cat, voz: S.voz, total: S.dur * 60, portada: temaDe(S.cat).portada, palabra: S.biblia ? palabraDe(S.cat) : null, escuchada: false };
       S.prog = 100; S.lista = true; S.preparando = false;
     }
     if (paso === 0) { S.pila = []; ir('hoy', { apilar: false }); setTimeout(() => $('#demo-nota')?.focus({ preventScroll: true }), 60); }
     if (paso === 1) { S.pila = ['hoy']; ir('generar', { apilar: false }); }
     if (paso === 2) { S.pila = ['hoy']; S.origen = 'dia'; crear(); }
     if (paso === 3) { S.pila = ['hoy']; ir('player', { apilar: false }); }
-    if (paso === 4) { S.pila = ['hoy']; ir('cierre', { apilar: false }); }
+    if (paso === 4) aCierre();
+  }
+
+  // ── la mezcla de Sonidos ──
+  const mezclaSuena = () => S.mezcla.capas.length > 0 && !S.mezcla.pausa;
+  function vaciarMezcla() {
+    Sonido.apagarTodo('mezcla');
+    S.mezcla = { capas: [], nombre: null, pausa: false, abierta: false };
+  }
+  /** Poner o quitar un sonido suelto. La mezcla deja de ser una guardada. */
+  function alternarSonido(n) {
+    const m = S.mezcla;
+    const i = m.capas.findIndex(x => x.n === n);
+    m.nombre = null;
+    if (i >= 0) {
+      m.capas.splice(i, 1);
+      Sonido.apagar(n, 'mezcla');
+      if (!m.capas.length) vaciarMezcla();
+      return;
+    }
+    m.capas.push({ n, v: 0.6 });
+    // Añadir un sonido a una mezcla en pausa la vuelve a poner en marcha.
+    m.pausa = false;
+    m.capas.forEach(x => Sonido.encender(x.n, x.v, 'mezcla'));
+  }
+  function ponerMezcla(x) {
+    if (S.mezcla.nombre === x.titulo) { vaciarMezcla(); return; }
+    Sonido.apagarTodo('mezcla');
+    S.mezcla = { capas: x.capas.map(c => ({ ...c })), nombre: x.titulo, pausa: false, abierta: false };
+    S.mezcla.capas.forEach(c => Sonido.encender(c.n, c.v, 'mezcla'));
   }
 
   const ACCIONES = {
     atras,
     ir: el => ir(el.dataset.v),
     tab: el => { S.pila = []; ir(el.dataset.v, { apilar: false }); },
+    // El loto: preparar desde el día si hay notas y, si no, desde un tema.
+    loto: () => {
+      S.pila = [S.vista];
+      if (S.notas.length) { S.origen = 'dia'; ir('generar', { apilar: false }); } else ir('intencion', { apilar: false });
+    },
+    'abrir-player': () => { S.pila = [S.vista]; ir('player', { apilar: false }); },
+    minimizar: () => {
+      const v = S.pila.pop();
+      S.pila = [];
+      ir(TABS.includes(v) ? v : 'hoy', { apilar: false });
+    },
+    'terminar-sesion': () => aCierre(),
+    'sonido-mezcla': el => { alternarSonido(el.dataset.v); pintarConScroll(); },
+    'poner-mezcla': el => { ponerMezcla(mezclasTodas()[Number(el.dataset.v)]); pintarConScroll(); },
+    'mezcla-play': () => {
+      const m = S.mezcla;
+      m.pausa = !m.pausa;
+      if (m.pausa) Sonido.apagarTodo('mezcla'); else m.capas.forEach(x => Sonido.encender(x.n, x.v, 'mezcla'));
+      pintarConScroll();
+    },
+    'mezcla-abrir': () => { S.mezcla.abierta = !S.mezcla.abierta; pintarConScroll(); },
+    'quitar-mezcla': () => { vaciarMezcla(); pintarConScroll(); },
+    'guardar-mezcla': () => {
+      const m = S.mezcla;
+      const titulo = m.nombre || `Mi mezcla ${S.mezclasGuardadas.length + 1}`;
+      if (!mezclasTodas().some(x => x.titulo === titulo)) {
+        S.mezclasGuardadas.unshift({ titulo, capas: m.capas.map(c => ({ ...c })) });
+      }
+      m.nombre = titulo;
+      m.abierta = false;
+      pintarConScroll();
+      aviso(`Guardada en Tus mezclas como «${esc(titulo)}».`);
+    },
+    'ver-sonidos': () => { S.escucharTab = 'Sonidos'; S.pila = []; ir('escuchar', { apilar: false }); },
+    'borrar-nota': el => { S.borrando = el.dataset.id; S.capa = 'borrar'; pintarCapa(); },
+    'borrar-si': () => {
+      S.notas = S.notas.filter(x => x.id !== S.borrando);
+      if (S.origen === S.borrando) S.origen = 'dia';
+      S.borrando = null;
+      S.capa = null;
+      pintarConScroll();
+    },
+    'fe-perfil': () => { S.fe = !S.fe; if (!S.fe) S.biblia = false; pintarConScroll(); },
     'guardar-nota': () => {
       const ta = $('#demo-nota');
       guardarNota(ta ? ta.value : S.borrador);
@@ -937,17 +1232,17 @@
       const era = S.capa;
       S.capa = null;
       // Los sonidos que se probaron en la hoja callan al cerrarla, salvo que
-      // la sesión esté sonando o se esté en Escuchar.
-      if (era === 'sonido' && !S.play && S.vista !== 'escuchar') Sonido.apagarTodo();
-      pintar();
+      // la sesión esté sonando.
+      if (era === 'sonido' && !S.play) Sonido.apagarTodo('sesion');
+      pintarConScroll();
     },
     voz: el => { S.voz = el.dataset.v; pintarCapa(); },
     sleep: el => { S.sleep = Number(el.dataset.v); S.inicioSleep = S.pos; pintarCapa(); },
     sonido: el => {
       const n = el.dataset.v;
       const i = S.sonidos.findIndex(x => x.n === n);
-      if (i >= 0) { S.sonidos.splice(i, 1); Sonido.apagar(n); }
-      else { S.sonidos.push({ n, v: 0.6 }); Sonido.encender(n, 0.6); }
+      if (i >= 0) { S.sonidos.splice(i, 1); Sonido.apagar(n, 'sesion'); }
+      else { S.sonidos.push({ n, v: 0.6 }); Sonido.encender(n, 0.6, 'sesion'); }
       const on = i < 0;
       el.classList.toggle('on', on);
       el.setAttribute('aria-checked', String(on));
@@ -961,7 +1256,9 @@
     'crear-ya': () => crear(),
     'a-hoy': () => { S.pila = []; ir('hoy', { apilar: false }); },
     'escuchar-lista': () => { S.pila = ['hoy']; S.pos = 0; ir('player', { apilar: false }); reproducir(); pintar(); },
-    play: () => { if (S.play) pausar(); else reproducir(); pintar(); },
+    // Desde el reproductor repinta entero; desde la barra, sin mover la pantalla.
+
+    play: () => { if (S.play) pausar(); else reproducir(); pintarConScroll(); },
     seek: el => {
       S.pos = Math.max(0, Math.min(S.sesion.total - 1, S.pos + Number(el.dataset.v) * 1));
       actualizarReproductor();
@@ -969,7 +1266,6 @@
     saltar: el => { S.pos = Number(el.dataset.v); actualizarReproductor(); if (!S.play) pintar(); },
     'texto-dentro': () => { S.texto = true; pintar(); },
     'texto-fuera': () => { S.texto = false; pintar(); },
-    'cerrar-sesion': () => { pausar(); S.animo = null; S.pieza = false; S.idea = 0; S.reflexion = ''; ir('cierre'); },
     animo: el => { S.animo = S.animo === el.dataset.v ? null : el.dataset.v; pintar(); },
     pieza: () => { S.pieza = !S.pieza; pintar(); },
     otra: () => { S.idea++; S.pieza = false; pintar(); },
@@ -988,11 +1284,11 @@
       aviso('Guardado en tu diario. Solo tú lo ves.');
     },
     terminar: () => { S.pila = []; ir('hoy', { apilar: false }); },
-    'esc-tab': el => { S.escucharTab = el.dataset.v; if (el.dataset.v !== 'Sonidos') Sonido.apagarTodo(); pintar(); },
+    'esc-tab': el => { S.escucharTab = el.dataset.v; pintar(); },
     biblioteca: el => {
       const b = BIBLIOTECA[Number(el.dataset.v)];
-      Sonido.apagarTodo();
-      S.sesion = { titulo: b.titulo, cat: b.cat, voz: 'Ruth', total: b.min * 60, palabra: null, escuchada: false };
+      terminarSesion();
+      S.sesion = { titulo: b.titulo, cat: b.cat, voz: 'Ruth', total: b.min * 60, portada: b.portada, palabra: null, escuchada: false };
       S.pos = 0;
       S.pila = ['escuchar'];
       ir('player', { apilar: false });
@@ -1012,15 +1308,32 @@
     const t = e.target;
     if (t.id === 'demo-nota') {
       S.borrador = t.value;
+      crecer(t);
       const b = $('#btn-guardar-nota');
       if (b) b.disabled = !t.value.trim();
     } else if (t.id === 'demo-reflexion') {
       S.reflexion = t.value;
     } else if (t.dataset.nivel) {
       const capa = S.sonidos.find(x => x.n === t.dataset.nivel);
-      if (capa) { capa.v = t.value / 100; Sonido.nivel(capa.n, capa.v); }
+      if (capa) { capa.v = t.value / 100; Sonido.nivel(capa.n, capa.v, 'sesion'); }
+    } else if (t.dataset.mezcla) {
+      const n = t.dataset.mezcla;
+      const capa = S.mezcla.capas.find(x => x.n === n);
+      if (!capa) return;
+      capa.v = t.value / 100;
+      if (!S.mezcla.pausa) Sonido.nivel(n, capa.v, 'mezcla');
+      const pct = $(`[data-pct="${n}"]`, pantallaEl);
+      if (pct) pct.textContent = `${t.value} %`;
+      const raya = $(`[data-raya="${n}"]`, pantallaEl);
+      if (raya) raya.style.width = `${t.value}%`;
     }
   });
+
+  /** La nota de Hoy crece con lo que escribes, como en la app. */
+  function crecer(t) {
+    t.style.height = 'auto';
+    t.style.height = `${t.scrollHeight}px`;
+  }
 
   pantallaEl.addEventListener('keydown', e => {
     if (e.target.id === 'demo-nota' && e.key === 'Enter' && !e.shiftKey) {
@@ -1059,8 +1372,8 @@
     S.pila = [];
     ir('hoy', { apilar: false });
     const v = $('.vista', vistaEl);
-    const d = $('.p-destacada', vistaEl);
-    if (v && d) v.scrollTop = d.offsetTop - 40;
+    const d = $('.p-cuaderno', vistaEl);
+    if (v && d) v.scrollTop = d.offsetTop - 60;
     mostrarMovil();
   }));
   $$('#lista-temas [data-tema]').forEach(b => b.addEventListener('click', () => {
@@ -1075,16 +1388,14 @@
   reloj();
   setInterval(reloj, 15000);
 
-  // Las portadas de Escuchar dependen del tema.
-  new MutationObserver(() => { if (S.vista === 'escuchar') pintar(); })
-    .observe(raiz, { attributes: true, attributeFilter: ['data-theme'] });
-
   // Si el móvil sale de la vista, la demo deja de sonar.
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(es => es.forEach(en => {
-      if (!en.isIntersecting && !respirando && (S.play || S.sonidos.some(x => Sonido.suena(x.n)))) {
-        pausar(); Sonido.apagarTodo();
-        if (S.vista === 'player' || S.vista === 'escuchar') pintar();
+      const sesionSuena = S.play || S.sonidos.some(x => Sonido.suena(x.n, 'sesion'));
+      if (!en.isIntersecting && !respirando && (sesionSuena || mezclaSuena())) {
+        pausar(); Sonido.apagarTodo('sesion');
+        if (mezclaSuena()) { S.mezcla.pausa = true; Sonido.apagarTodo('mezcla'); }
+        pintarConScroll();
       }
     }), { threshold: 0.15 }).observe(pantallaEl);
   }
@@ -1144,7 +1455,7 @@
       faseEl.textContent = texto;
       cuenta.textContent = 'Cuatro segundos para tomar aire, seis para soltarlo.';
       reposo();
-      Sonido.apagar('Olas');
+      Sonido.apagar('Olas', 'respira');
     };
     const respiracion = n => {
       if (!activo) return;
@@ -1168,12 +1479,12 @@
       activo = true;
       respirando = true;
       boton.textContent = 'Parar';
-      if (olas.checked) Sonido.encender('Olas', 0.55);
+      if (olas.checked) Sonido.encender('Olas', 0.55, 'respira');
       respiracion(1);
     });
     olas.addEventListener('change', () => {
       if (!activo) return;
-      if (olas.checked) Sonido.encender('Olas', 0.55); else Sonido.apagar('Olas');
+      if (olas.checked) Sonido.encender('Olas', 0.55, 'respira'); else Sonido.apagar('Olas', 'respira');
     });
     reposo();
   }
