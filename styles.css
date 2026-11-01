@@ -5,7 +5,7 @@
  * índigo, cristal y acento lavanda— y mañana lavanda de claro —lavanda que
  * baja a rosado, tarjetas blancas, tinta marino y violeta—. El degradado
  * violeta (`--grad`) es lo principal y lo encendido, y las fotos llevan el
- * tinte de atardecer (`--tinte`). Una sola familia, Hanken Grotesk, como en
+ * tinte de atardecer (`--tinte`, ahora apagado a prueba). Una sola familia, Hanken Grotesk, como en
  * la app. Si cambian los tokens de la app hay que copiarlos aquí a mano: los
  * dos proyectos no comparten código.
  *
@@ -88,9 +88,13 @@
   /* El degradado violeta de lo principal y de lo encendido. */
   --grad: linear-gradient(135deg, #8C6EF8 0%, #6447E2 55%, #5539D3 100%);
 
-  /* El tinte de atardecer de las fotos: se compone en `multiply` sobre el
-     arte de día, que es el mismo en los dos temas. Violeta de noche. */
-  --tinte: linear-gradient(180deg, rgba(110, 50, 190, .78), rgba(150, 70, 190, .62) 55%, rgba(230, 110, 140, .42));
+  /* El tinte de las fotos, que se compone en `multiply` sobre el arte de día.
+     Ahora va apagado (`none`), a prueba como en la app, para que se vea el
+     cielo. Antes era un violeta de atardecer: de noche
+     linear-gradient(180deg, rgba(110, 50, 190, .78), rgba(150, 70, 190, .62) 55%, rgba(230, 110, 140, .42))
+     y de día
+     linear-gradient(180deg, rgba(122, 88, 255, .5), rgba(212, 118, 196, .32) 58%, rgba(255, 168, 120, .2)). */
+  --tinte: none;
 
   /* El arte, con su tinte delante. Quien lo pinta añade
      `background-blend-mode: multiply`. */
@@ -166,7 +170,7 @@
     --respira-centro: #FFFFFF;
     --respira-borde: rgba(255, 255, 255, .6);
     --respira-mezcla: normal;
-    --tinte: linear-gradient(180deg, rgba(122, 88, 255, .5), rgba(212, 118, 196, .32) 58%, rgba(255, 168, 120, .2));
+    --tinte: none;
     color-scheme: light;
   }
 }
@@ -223,7 +227,7 @@
   --respira-centro: #FFFFFF;
   --respira-borde: rgba(255, 255, 255, .6);
   --respira-mezcla: normal;
-  --tinte: linear-gradient(180deg, rgba(122, 88, 255, .5), rgba(212, 118, 196, .32) 58%, rgba(255, 168, 120, .2));
+  --tinte: none;
   color-scheme: light;
 }
 :root[data-theme="dark"] { color-scheme: dark; }
