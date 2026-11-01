@@ -798,7 +798,10 @@ header.site .wrap { display: flex; align-items: center; gap: 20px; height: 66px;
 }
 .pantalla.foto-arriba .estado-bar { background: transparent; color: var(--on-velo); }
 .p-sobre-foto { color: var(--on-velo); text-shadow: 0 2px 14px var(--shadow); }
-.p-cuaderno { padding: 1em 1.4em; margin-bottom: 1.2em; background: var(--cuaderno); border-color: var(--cuaderno-borde); }
+/* Lo que escribes tú —el cuaderno de Hoy, tu diario— lleva de noche el velo
+   violeta; el resto de tarjetas sigue en cristal. */
+.p-cuaderno, .p-tuyo { background: var(--cuaderno); border-color: var(--cuaderno-borde); }
+.p-cuaderno { padding: 1em 1.4em; margin-bottom: 1.2em; }
 .p-cuaderno .p-baldosita { background: var(--cuaderno-icono); color: var(--cuaderno-tinta); }
 .p-cuaderno .escribir { display: flex; align-items: center; gap: 1em; }
 .p-cuaderno .p-textarea { font-size: 1.7em; line-height: 1.41; min-height: 0; padding: .45em 0; }

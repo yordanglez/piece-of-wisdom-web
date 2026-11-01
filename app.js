@@ -799,7 +799,7 @@
     return vistaTab(`
         <div class="p-fila" style="margin-bottom:1.6em;min-height:4.8em"><span class="p-title">Mi camino</span></div>
         <p class="p-hero" style="margin-bottom:2em">Esta semana volviste <span class="p-acento">1 día</span>.</p>
-        <div class="p-card">
+        <div class="p-card p-tuyo">
           <p class="p-meta" style="margin-bottom:.4em">${hoyLargo()}</p>
           <p class="p-section" style="margin-bottom:1em">Tu diario de hoy</p>
           ${d.notas.length ? bloque('Lo que traías', d.notas.map(x => `<p class="p-body">${esc(x.texto)}</p>`).join('')) : ''}
